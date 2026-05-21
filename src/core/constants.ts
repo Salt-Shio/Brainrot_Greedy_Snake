@@ -1,4 +1,4 @@
-import { Point, Direction, VectorMap } from './types';
+import type { Point, Direction, VectorMap } from './types';
 
 /**
  * 遊戲網格大小 (20x20)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Point } from '../core/types';
+import type { Point } from '../core/types';
 import { GRID_SIZE } from '../core/constants';
 
 interface Props {

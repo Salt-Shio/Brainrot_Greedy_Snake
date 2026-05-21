@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import { Point, Direction, GameState } from '../core/types';
+import type { Point, Direction, GameState } from '../core/types';
 import { 
   GRID_SIZE, 
   INITIAL_SNAKE, 

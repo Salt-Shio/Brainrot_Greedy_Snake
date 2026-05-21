@@ -1,4 +1,4 @@
-import { Point, Direction } from './types';
+import type { Point, Direction } from './types';
 import { VECTOR_MAP } from './constants';
 
 /**
