@@ -12,6 +12,13 @@ export interface Point {
 export type GameState = 'IDLE' | 'PLAYING' | 'GAMEOVER' | 'PAUSED';
 
 /**
+ * 地圖邊界模式
+ * - BOUNDARY: 撞牆即死
+ * - MIRROR_WRAP: 鏡像循環連接
+ */
+export type MapMode = 'BOUNDARY' | 'MIRROR_WRAP';
+
+/**
  * 移動方向
  */
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';

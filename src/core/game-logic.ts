@@ -1,15 +1,49 @@
 import type { Point, Direction } from './types';
-import { VECTOR_MAP } from './constants';
+import { VECTOR_MAP, MAP_MODE } from './constants';
+
+/**
+ * 處理座標循環 (Wrap Logic)
+ * 根據 Mirror/Flip 規則進行座標轉換
+ */
+export function wrapPosition(point: Point, gridSize: number, direction: Direction): Point {
+  const wrapped = { ...point };
+
+  // 水平越界處理 (LEFT/RIGHT)
+  if (point.x < 0) {
+    wrapped.x = gridSize - 1;
+    wrapped.y = (gridSize - 1) - point.y;
+  } else if (point.x >= gridSize) {
+    wrapped.x = 0;
+    wrapped.y = (gridSize - 1) - point.y;
+  }
+
+  // 垂直越界處理 (UP/DOWN)
+  if (point.y < 0) {
+    wrapped.y = gridSize - 1;
+    wrapped.x = (gridSize - 1) - point.x;
+  } else if (point.y >= gridSize) {
+    wrapped.y = 0;
+    wrapped.x = (gridSize - 1) - point.x;
+  }
+
+  return wrapped;
+}
 
 /**
  * 根據目前頭部位置與方向，計算下一格的座標
  */
-export function getNextHeadPosition(head: Point, direction: Direction): Point {
+export function getNextHeadPosition(head: Point, direction: Direction, gridSize: number): Point {
   const vector = VECTOR_MAP[direction];
-  return {
+  const nextRaw = {
     x: head.x + vector.x,
     y: head.y + vector.y,
   };
+
+  if (MAP_MODE === 'MIRROR_WRAP') {
+    return wrapPosition(nextRaw, gridSize, direction);
+  }
+
+  return nextRaw;
 }
 
 /**

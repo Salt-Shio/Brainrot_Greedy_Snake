@@ -1,23 +1,12 @@
 import { ref, computed } from 'vue';
-import type { Point, Direction, GameState } from '../core/types';
-import { 
-  GRID_SIZE, 
-  INITIAL_SNAKE, 
-  INITIAL_FOOD, 
-  OPPOSITE_DIRECTION 
-} from '../core/constants';
-import { 
-  getNextHeadPosition, 
-  isWallCollision, 
-  isSelfCollision, 
-  isEating, 
-  generateFood 
-} from '../core/game-logic';
+import type { Point, Direction, GameState } from '@/core/types';
+import * as CONFIG from '@/core/constants';
+import * as LOGIC from '@/core/game-logic';
 
 export function useSnakeStore() {
   // --- State ---
-  const snake = ref<Point[]>([...INITIAL_SNAKE]);
-  const food = ref<Point>(INITIAL_FOOD);
+  const snake = ref<Point[]>([...CONFIG.INITIAL_SNAKE]);
+  const food = ref<Point>(CONFIG.INITIAL_FOOD);
   const direction = ref<Direction>('UP');
   // 用於緩衝玩家輸入，防止在一個 Tick 內快速按下多個鍵導致逻辑錯誤
   const nextDirection = ref<Direction>('UP');
@@ -34,8 +23,8 @@ export function useSnakeStore() {
    * 初始化遊戲
    */
   const initGame = () => {
-    snake.value = [...INITIAL_SNAKE.map(p => ({ ...p }))];
-    food.value = { ...INITIAL_FOOD };
+    snake.value = [...CONFIG.INITIAL_SNAKE.map(p => ({ ...p }))];
+    food.value = { ...CONFIG.INITIAL_FOOD };
     direction.value = 'UP';
     nextDirection.value = 'UP';
     status.value = 'IDLE';
@@ -47,7 +36,7 @@ export function useSnakeStore() {
    */
   const changeDirection = (newDir: Direction) => {
     // 禁止 180 度直接回頭
-    if (newDir !== OPPOSITE_DIRECTION[direction.value]) {
+    if (newDir !== CONFIG.OPPOSITE_DIRECTION[direction.value]) {
       nextDirection.value = newDir;
     }
   };
@@ -63,10 +52,11 @@ export function useSnakeStore() {
 
     // 2. 計算下一格位置
     const head = snake.value[0];
-    const nextHead = getNextHeadPosition(head, direction.value);
+    const nextHead = LOGIC.getNextHeadPosition(head, direction.value, CONFIG.GRID_SIZE);
 
     // 3. 碰撞檢查
-    if (isWallCollision(nextHead, GRID_SIZE) || isSelfCollision(nextHead, snake.value)) {
+    const hitWall = CONFIG.MAP_MODE === 'BOUNDARY' && LOGIC.isWallCollision(nextHead, CONFIG.GRID_SIZE);
+    if (hitWall || LOGIC.isSelfCollision(nextHead, snake.value)) {
       status.value = 'GAMEOVER';
       return;
     }
@@ -74,10 +64,10 @@ export function useSnakeStore() {
     // 4. 移動邏輯
     const newSnake = [nextHead, ...snake.value];
 
-    if (isEating(nextHead, food.value)) {
+    if (LOGIC.isEating(nextHead, food.value)) {
       // 吃到食物：長度增加 (不 pop 尾巴)，分數增加，生成新食物
       score.value += 10;
-      food.value = generateFood(newSnake, GRID_SIZE);
+      food.value = LOGIC.generateFood(newSnake, CONFIG.GRID_SIZE);
     } else {
       // 沒吃到食物：移動 (pop 尾巴)
       newSnake.pop();

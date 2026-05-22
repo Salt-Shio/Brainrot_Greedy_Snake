@@ -1,9 +1,14 @@
-import type { Point, Direction, VectorMap } from './types';
+import type { Point, Direction, VectorMap, MapMode } from './types';
 
 /**
  * 遊戲網格大小 (20x20)
  */
 export const GRID_SIZE = 20;
+
+/**
+ * 地圖邊界模式
+ */
+export const MAP_MODE: MapMode = 'MIRROR_WRAP';
 
 /**
  * 初始蛇身座標陣列 (頭在索引 0)
