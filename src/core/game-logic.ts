@@ -5,7 +5,7 @@ import { VECTOR_MAP, MAP_MODE } from './constants';
  * 處理座標循環 (Wrap Logic)
  * 根據 Mirror/Flip 規則進行座標轉換
  */
-export function wrapPosition(point: Point, gridSize: number, direction: Direction): Point {
+export function wrapPosition(point: Point, gridSize: number): Point {
   const wrapped = { ...point };
 
   // 水平越界處理 (LEFT/RIGHT)
@@ -40,7 +40,7 @@ export function getNextHeadPosition(head: Point, direction: Direction, gridSize:
   };
 
   if (MAP_MODE === 'MIRROR_WRAP') {
-    return wrapPosition(nextRaw, gridSize, direction);
+    return wrapPosition(nextRaw, gridSize);
   }
 
   return nextRaw;
