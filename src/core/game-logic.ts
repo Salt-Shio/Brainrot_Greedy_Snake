@@ -1,5 +1,5 @@
 import type { Point, Direction } from './types';
-import { VECTOR_MAP, MAP_MODE } from './constants';
+import { VECTOR_MAP, MAP_MODE } from './config/game';
 
 /**
  * 處理座標循環 (Wrap Logic)

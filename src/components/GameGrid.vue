@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Point } from '../core/types';
-import { GRID_SIZE } from '../core/constants';
+import type { Point } from '@/core/types';
+import { GRID_SIZE } from '@/core/config/game';
 
 interface Props {
   snake: Point[];

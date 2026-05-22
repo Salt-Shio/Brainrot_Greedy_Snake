@@ -1,5 +1,6 @@
 import { onUnmounted, ref } from 'vue';
-import { INITIAL_SPEED } from '../core/constants';
+import { INITIAL_SPEED } from '@/core/config/game';
+
 
 /**
  * 簡易的遊戲循環管理器
