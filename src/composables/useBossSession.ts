@@ -1,5 +1,5 @@
 import { ref, onUnmounted, shallowRef } from 'vue';
-import { detectAlternatingMovement, type HandSide } from '@/core/boss-logic';
+import { detectAlternatingMovement, getHandCenterY, type HandSide } from '@/core/boss-logic';
 import { BOSS_TARGET_COUNT } from '@/core/config/game';
 
 const MEDIAPIPE_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe';
@@ -29,6 +29,7 @@ export function useBossSession(onDefeat: () => void) {
   const count = ref(0);
   const targetCount = BOSS_TARGET_COUNT;
   const isCameraReady = ref(false);
+  const latestResults = shallowRef<any>(null);
   
   // Mediapipe 實例 (使用 shallowRef 避免 Vue 遞迴 proxy 破壞外部物件)
   const handsModel = shallowRef<any>(null);
@@ -50,6 +51,7 @@ export function useBossSession(onDefeat: () => void) {
     try {
       await loadScript(`${MEDIAPIPE_CDN}/hands/hands.js`);
       await loadScript(`${MEDIAPIPE_CDN}/camera_utils/camera_utils.js`);
+      await loadScript(`${MEDIAPIPE_CDN}/drawing_utils/drawing_utils.js`);
     } catch (err) {
       console.error('Mediapipe CDN 載入失敗:', err);
       return;
@@ -77,11 +79,11 @@ export function useBossSession(onDefeat: () => void) {
       minTrackingConfidence: 0.5
     });
 
-    // 3. 註冊每幀的回調
+    // 2. 註冊每幀的回調
     hands.onResults(onResults);
     handsModel.value = hands;
 
-    // 4. 啟動相機
+    // 3. 啟動相機
     if (!CameraClass) {
       console.error('Mediapipe Camera utility failed to load');
       return;
@@ -108,6 +110,9 @@ export function useBossSession(onDefeat: () => void) {
   const onResults = (results: any) => {
     if (!isActive.value) return;
 
+    // 保存結果供 UI 繪製
+    latestResults.value = results;
+
     const movement = detectAlternatingMovement(
       results, 
       prevLeftY, 
@@ -126,19 +131,9 @@ export function useBossSession(onDefeat: () => void) {
       }
     }
 
-    // 更新歷史資料 (從 results 中提取)
-    let currentLeftY = null;
-    let currentRightY = null;
-    
-    if (results.multiHandedness && results.multiHandLandmarks) {
-      for (let i = 0; i < results.multiHandedness.length; i++) {
-        const label = results.multiHandedness[i].label;
-        if (label === 'Left' || label === 'Right') {
-           if (label === 'Left') currentLeftY = results.multiHandLandmarks[i][0].y;
-           else currentRightY = results.multiHandLandmarks[i][0].y;
-        }
-      }
-    }
+    // 更新歷史資料
+    const currentLeftY = getHandCenterY(results, 'Left');
+    const currentRightY = getHandCenterY(results, 'Right');
 
     // 只有在當前幀有偵測到手時，才更新 prevY，避免因為手短暫離開畫面而清空記錄
     if (currentLeftY !== null) prevLeftY = currentLeftY;
@@ -172,6 +167,7 @@ export function useBossSession(onDefeat: () => void) {
     count,
     targetCount,
     isCameraReady,
+    latestResults,
     startBossBattle
   };
 }

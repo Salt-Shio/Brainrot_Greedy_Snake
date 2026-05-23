@@ -36,6 +36,7 @@ export function useGameSession() {
     count: bossHitCount, 
     targetCount: bossTargetCount, 
     isCameraReady: isBossCameraReady,
+    latestResults,
     startBossBattle 
   } = useBossSession(handleBossDefeat);
 
@@ -174,6 +175,7 @@ export function useGameSession() {
     bossHitCount,
     bossTargetCount,
     isBossCameraReady,
+    latestResults,
     startBossBattle,
     // 輸入控制器 (供 UI 使用)
     buffer,
