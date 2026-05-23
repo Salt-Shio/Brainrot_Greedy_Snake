@@ -34,6 +34,7 @@ const initGame = () => {
       CONFIG.GRID_SIZE, 
       foods.value.map(f => f.position)
     );
+    if (pos === null) break; // 地圖已滿，停止生成（理論上不應發生）
     const meme = LOGIC.getRandomMeme(CONFIG.MEME_POOL as MemeFood[]);
     foods.value.push({ position: pos, meme });
   }
@@ -67,7 +68,13 @@ const moveStep = (): MemeFood | null => {
 
   // 2. 計算下一格位置
   const head = snake.value[0];
-  const nextHead = LOGIC.getNextHeadPosition(head, direction.value, CONFIG.GRID_SIZE);
+  const nextHead = LOGIC.getNextHeadPosition(
+    head,
+    direction.value,
+    CONFIG.GRID_SIZE,
+    CONFIG.MAP_MODE,
+    CONFIG.VECTOR_MAP,
+  );
 
   // 3. 碰撞檢查
   const hitWall = CONFIG.MAP_MODE === 'BOUNDARY' && LOGIC.isWallCollision(nextHead, CONFIG.GRID_SIZE);
@@ -97,7 +104,12 @@ const moveStep = (): MemeFood | null => {
     );
     const newMeme = LOGIC.getRandomMeme(CONFIG.MEME_POOL as MemeFood[]);
     
-    foods.value[foodIndex] = { position: newPos, meme: newMeme };
+    if (newPos !== null) {
+      foods.value[foodIndex] = { position: newPos, meme: newMeme };
+    } else {
+      // 地圖已滿，移除食物但不補充（極端情況）
+      foods.value.splice(foodIndex, 1);
+    }
   } else {
     // 沒吃到食物：移動 (pop 尾巴)
     newSnake.pop();
@@ -135,6 +147,24 @@ const resetEatenCount = () => {
   eatenCount.value = 0;
 };
 
+/**
+ * 進入 Boss 戰鬥狀態（只能從 PLAYING 進入）
+ */
+const enterBossBattle = () => {
+  if (status.value === 'PLAYING') {
+    status.value = 'BOSS_BATTLE';
+  }
+};
+
+/**
+ * 從 Boss 戰鬥回到正常遊戲（只能從 BOSS_BATTLE 回來）
+ */
+const resumeFromBoss = () => {
+  if (status.value === 'BOSS_BATTLE') {
+    status.value = 'PLAYING';
+  }
+};
+
 export function useSnakeStore() {
   return {
     // State
@@ -156,5 +186,7 @@ export function useSnakeStore() {
     pauseGame,
     toggleControlMode,
     resetEatenCount,
+    enterBossBattle,
+    resumeFromBoss,
   };
 }

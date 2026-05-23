@@ -1,4 +1,22 @@
-import type { Results } from '@mediapipe/hands';
+/**
+ * Mediapipe Hands Results 的最小介面定義
+ * 避免 core 層依賴外部 npm 套件型別
+ */
+interface HandLandmark {
+  x: number;
+  y: number;
+  z: number;
+}
+
+interface HandClassification {
+  label: string;
+  score: number;
+}
+
+interface MediapipeResults {
+  multiHandLandmarks?: HandLandmark[][];
+  multiHandedness?: HandClassification[];
+}
 
 // 左右手標識
 export type HandSide = 'Left' | 'Right';
@@ -13,7 +31,7 @@ export interface MovementResult {
  * 提取手腕的垂直座標 (Y軸)，作為手部位置的基準
  * Mediapipe 的座標系統：Y軸向下為正 (0.0 是頂部，1.0 是底部)
  */
-export function getWristY(results: Results, side: HandSide): number | null {
+export function getWristY(results: MediapipeResults, side: HandSide): number | null {
   if (!results.multiHandLandmarks || !results.multiHandedness) return null;
 
   for (let i = 0; i < results.multiHandedness.length; i++) {
@@ -35,7 +53,7 @@ export function getWristY(results: Results, side: HandSide): number | null {
  * @param threshold 移動距離的閾值 (避免微小抖動計分)
  */
 export function detectAlternatingMovement(
-  currentHands: Results,
+  currentHands: MediapipeResults,
   prevLeftY: number | null,
   prevRightY: number | null,
   lastScoredHand: HandSide | null,

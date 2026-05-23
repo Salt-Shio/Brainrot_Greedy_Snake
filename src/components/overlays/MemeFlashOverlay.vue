@@ -16,13 +16,15 @@ watch(() => props.meme, (newMeme) => {
     visibleMeme.value = newMeme;
     isAnimating.value = true;
     animationKey.value += 1; // 重置動畫狀態
-    
-    // 動態結束後清除 (與 CSS 動畫時間同步)
-    setTimeout(() => {
-      isAnimating.value = false;
-    }, 800);
   }
 }, { deep: true });
+
+/**
+ * 動畫結束後自動清除狀態，與 CSS 動畫完全同步，無需手動維護時間
+ */
+const onAnimationEnd = () => {
+  isAnimating.value = false;
+};
 </script>
 
 <template>
@@ -35,6 +37,7 @@ watch(() => props.meme, (newMeme) => {
       :src="visibleMeme.imageUrl" 
       class="meme-flash-image w-[120%] h-[120%] object-contain opacity-20"
       alt="Flash Meme"
+      @animationend="onAnimationEnd"
     />
   </div>
 </template>

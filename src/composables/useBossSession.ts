@@ -1,18 +1,33 @@
 import { ref, onUnmounted, shallowRef } from 'vue';
-import * as mpHands from '@mediapipe/hands';
-import * as mpCamera from '@mediapipe/camera_utils';
 import { detectAlternatingMovement, type HandSide } from '@/core/boss-logic';
+import { BOSS_TARGET_COUNT } from '@/core/config/game';
 
-// 由於 Mediapipe 的 NPM 套件匯出方式較特殊，在部分建置環境中需要從命名空間中提取類別
-const Hands = (mpHands as any).Hands || (mpHands as any).default?.Hands || (window as any).Hands;
-const Camera = (mpCamera as any).Camera || (mpCamera as any).default?.Camera || (window as any).Camera;
+const MEDIAPIPE_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe';
+
+/**
+ * 動態注入 CDN script 標籤（若已存在則直接 resolve）
+ */
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.crossOrigin = 'anonymous';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Failed to load: ${src}`));
+    document.head.appendChild(script);
+  });
+}
 
 export function useBossSession(onDefeat: () => void) {
 
   // 狀態
   const isActive = ref(false);
   const count = ref(0);
-  const targetCount = 67;
+  const targetCount = BOSS_TARGET_COUNT;
   const isCameraReady = ref(false);
   
   // Mediapipe 實例 (使用 shallowRef 避免 Vue 遞迴 proxy 破壞外部物件)
@@ -31,15 +46,27 @@ export function useBossSession(onDefeat: () => void) {
   const initVision = async (video: HTMLVideoElement) => {
     videoElement.value = video;
 
-    if (!Hands) {
+    // 1. 動態載入 Mediapipe CDN scripts（已載入則直接跳過）
+    try {
+      await loadScript(`${MEDIAPIPE_CDN}/hands/hands.js`);
+      await loadScript(`${MEDIAPIPE_CDN}/camera_utils/camera_utils.js`);
+    } catch (err) {
+      console.error('Mediapipe CDN 載入失敗:', err);
+      return;
+    }
+
+    const HandsClass = (window as any).Hands;
+    const CameraClass = (window as any).Camera;
+
+    if (!HandsClass) {
       console.error('Mediapipe Hands model failed to load');
       return;
     }
 
-    // 1. 初始化 Hands 模型
-    const hands = new Hands({
+    // 2. 初始化 Hands 模型
+    const hands = new HandsClass({
       locateFile: (file: string) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        return `${MEDIAPIPE_CDN}/hands/${file}`;
       }
     });
 
@@ -50,17 +77,17 @@ export function useBossSession(onDefeat: () => void) {
       minTrackingConfidence: 0.5
     });
 
-    // 2. 註冊每幀的回調
+    // 3. 註冊每幀的回調
     hands.onResults(onResults);
     handsModel.value = hands;
 
-    // 3. 啟動相機
-    if (!Camera) {
+    // 4. 啟動相機
+    if (!CameraClass) {
       console.error('Mediapipe Camera utility failed to load');
       return;
     }
 
-    const cam = new Camera(video, {
+    const cam = new CameraClass(video, {
       onFrame: async () => {
         if (handsModel.value) {
           await handsModel.value.send({ image: video });

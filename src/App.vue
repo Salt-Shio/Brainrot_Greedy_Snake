@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useSnakeStore } from '@/composables/useSnakeStore';
 import { useGameSession } from '@/composables/useGameSession';
+import { MORSE_CONFIG } from '@/core/config/controls/morse';
 
 // Components
 import GameGrid from '@/components/GameGrid.vue';
@@ -39,6 +40,7 @@ const {
           v-if="store.status.value === 'PLAYING'"
           :control-mode="store.controlMode.value"
           :ui-display="uiDisplay"
+          :morse-map="MORSE_CONFIG.MAP"
         />
       </div>
 
@@ -65,6 +67,7 @@ const {
             :challenge-morse="challengeMorse"
             :buffer="buffer"
             :ui-display="uiDisplay"
+            :morse-map="MORSE_CONFIG.MAP"
             @toggle-mode="store.toggleControlMode()"
           />
           <GameOverOverlay 

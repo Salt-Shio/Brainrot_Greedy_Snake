@@ -1,4 +1,4 @@
-import type { MapMode, VectorMap } from '@/core/types';
+import type { MapMode, VectorMap, Direction } from '@/core/types';
 import type { InputMode } from '@/core/input/types';
 
 /**
@@ -59,9 +59,19 @@ export const DEFAULT_CONTROL_MODE: InputMode = 'TWIN_KEY';
 /**
  * 每個方向的正對向，用於防止 180 度直接回頭
  */
-export const OPPOSITE_DIRECTION: Record<string, string> = {
+export const OPPOSITE_DIRECTION: Record<Direction, Direction> = {
   UP: 'DOWN',
   DOWN: 'UP',
   LEFT: 'RIGHT',
   RIGHT: 'LEFT',
 };
+
+/**
+ * 吃掉幾個食物後觸發 Boss 戰鬥
+ */
+export const BOSS_TRIGGER_COUNT = 10;
+
+/**
+ * Boss 戰鬥需要完成的揮手次數
+ */
+export const BOSS_TARGET_COUNT = 67;

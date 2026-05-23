@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import * as CONFIG from '@/core/config';
+import type { Direction } from '@/core/types';
 import type { InputMode, KeyHint } from '@/core/input/types';
 
 defineProps<{
   controlMode: InputMode;
   uiDisplay: KeyHint[];
+  morseMap: Record<string, Direction>;
 }>();
 </script>
 
@@ -26,7 +27,7 @@ defineProps<{
       </template>
       <!-- Morse Mapping -->
       <template v-else>
-        <div v-for="(dir, morse) in CONFIG.MORSE_CONFIG.MAP" :key="dir" class="flex flex-col">
+        <div v-for="(dir, morse) in morseMap" :key="dir" class="flex flex-col">
           <span class="text-green-400 font-mono text-xl font-black">{{ morse }}</span>
           <span class="text-slate-400 text-lg font-bold">
             {{ dir === 'UP' ? '↑' : dir === 'DOWN' ? '↓' : dir === 'LEFT' ? '←' : '→' }}

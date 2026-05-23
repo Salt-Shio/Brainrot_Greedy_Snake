@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import * as CONFIG from '@/core/config';
-import type { KeyHint } from '@/core/input/types';
+import type { Direction } from '@/core/types';
+import type { InputMode, KeyHint } from '@/core/input/types';
 
 defineProps<{
-  controlMode: string;
+  controlMode: InputMode;
   challengeMorse: string;
   buffer: string;
   uiDisplay: KeyHint[];
+  morseMap: Record<string, Direction>;
 }>();
 
 defineEmits<{
@@ -51,7 +52,7 @@ defineEmits<{
       </div>
 
       <div class="grid grid-cols-2 gap-3 mb-4 w-full">
-        <div v-for="(dir, morse) in CONFIG.MORSE_CONFIG.MAP" :key="dir" class="flex items-center justify-between px-4 py-2 bg-slate-950/30 rounded-xl border border-slate-800/50">
+        <div v-for="(dir, morse) in morseMap" :key="dir" class="flex items-center justify-between px-4 py-2 bg-slate-950/30 rounded-xl border border-slate-800/50">
           <span class="text-green-500/70 font-mono text-xs font-bold">{{ morse }}</span>
           <span class="text-slate-400 text-base">{{ dir === 'UP' ? '↑' : dir === 'DOWN' ? '↓' : dir === 'LEFT' ? '←' : '→' }}</span>
         </div>

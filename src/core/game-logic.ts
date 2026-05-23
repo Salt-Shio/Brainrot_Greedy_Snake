@@ -1,5 +1,4 @@
-import type { Point, Direction, MemeFood } from './types';
-import { VECTOR_MAP, MAP_MODE } from '@/core/config/game';
+import type { Point, Direction, MapMode, VectorMap, MemeFood } from './types';
 
 /**
  * 從資源池中隨機挑選一個迷因食物
@@ -15,40 +14,39 @@ export function getRandomMeme(pool: MemeFood[]): MemeFood {
  * 根據 Mirror/Flip 規則進行座標轉換
  */
 export function wrapPosition(point: Point, gridSize: number): Point {
-  const wrapped = { ...point };
+  const max = gridSize - 1;
 
   // 水平越界處理 (LEFT/RIGHT)
-  if (point.x < 0) {
-    wrapped.x = gridSize - 1;
-    wrapped.y = (gridSize - 1) - point.y;
-  } else if (point.x >= gridSize) {
-    wrapped.x = 0;
-    wrapped.y = (gridSize - 1) - point.y;
-  }
+  // 如果 x 越界，則 y 麓像圖德翻轉
+  const xOut = point.x < 0 || point.x >= gridSize;
+  const yOut = point.y < 0 || point.y >= gridSize;
 
-  // 垂直越界處理 (UP/DOWN)
-  if (point.y < 0) {
-    wrapped.y = gridSize - 1;
-    wrapped.x = (gridSize - 1) - point.x;
-  } else if (point.y >= gridSize) {
-    wrapped.y = 0;
-    wrapped.x = (gridSize - 1) - point.x;
-  }
+  const x = point.x < 0 ? max : point.x >= gridSize ? 0 : point.x;
+  const y = point.y < 0 ? max : point.y >= gridSize ? 0 : point.y;
 
-  return wrapped;
+  return {
+    x: yOut ? max - x : x,
+    y: xOut ? max - y : y,
+  };
 }
 
 /**
  * 根據目前頭部位置與方向，計算下一格的座標
  */
-export function getNextHeadPosition(head: Point, direction: Direction, gridSize: number): Point {
-  const vector = VECTOR_MAP[direction];
+export function getNextHeadPosition(
+  head: Point,
+  direction: Direction,
+  gridSize: number,
+  mapMode: MapMode,
+  vectorMap: VectorMap,
+): Point {
+  const vector = vectorMap[direction];
   const nextRaw = {
     x: head.x + vector.x,
     y: head.y + vector.y,
   };
 
-  if (MAP_MODE === 'MIRROR_WRAP') {
+  if (mapMode === 'MIRROR_WRAP') {
     return wrapPosition(nextRaw, gridSize);
   }
 
@@ -82,30 +80,29 @@ export function isEating(head: Point, food: Point): boolean {
   return head.x === food.x && head.y === food.y;
 }
 
-/**
- * 產生隨機座標
- */
-function getRandomPoint(gridSize: number): Point {
-  return {
-    x: Math.floor(Math.random() * gridSize),
-    y: Math.floor(Math.random() * gridSize),
-  };
-}
 
 /**
  * 在地圖上隨機產生食物，且必須避開蛇身與現有食物
+ * @returns 新食物的座標，若地圖已滿則回傳 null
  */
-export function generateFood(snakeBody: Point[], gridSize: number, existingFoods: Point[] = []): Point {
-  let newFood: Point;
-  let isOccupied: boolean;
+export function generateFood(snakeBody: Point[], gridSize: number, existingFoods: Point[] = []): Point | null {
+  // 建立已占用格子的雜湊集，避免重複遍歷
+  const occupied = new Set<string>([
+    ...snakeBody.map(p => `${p.x},${p.y}`),
+    ...existingFoods.map(p => `${p.x},${p.y}`),
+  ]);
 
-  // 使用迴圈直到找到不在蛇身上且不在現有食物位置的座標
-  do {
-    newFood = getRandomPoint(gridSize);
-    const isOnSnake = snakeBody.some(segment => segment.x === newFood.x && segment.y === newFood.y);
-    const isOnFood = existingFoods.some(food => food.x === newFood.x && food.y === newFood.y);
-    isOccupied = isOnSnake || isOnFood;
-  } while (isOccupied);
+  // 收集所有可用格子
+  const available: Point[] = [];
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      if (!occupied.has(`${x},${y}`)) {
+        available.push({ x, y });
+      }
+    }
+  }
 
-  return newFood;
+  if (available.length === 0) return null;
+
+  return available[Math.floor(Math.random() * available.length)];
 }

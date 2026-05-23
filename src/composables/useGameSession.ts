@@ -25,7 +25,7 @@ export function useGameSession() {
 
   // --- Boss 戰鬥協調 ---
   const handleBossDefeat = () => {
-    store.status.value = 'PLAYING';
+    store.resumeFromBoss();
     store.resetEatenCount();
     playBGM();
     loop.start();
@@ -51,8 +51,8 @@ export function useGameSession() {
       playEffect(eatenMeme.soundUrl);
       lastEatenMeme.value = { ...eatenMeme };
 
-      // 檢查是否達到觸發 Boss 的閾值 (設定為 10)
-      if (store.eatenCount.value >= 10) {
+      // 檢查是否達到觸發 Boss 的閾值
+      if (store.eatenCount.value >= CONFIG.BOSS_TRIGGER_COUNT) {
         triggerBossBattle();
       }
     }
@@ -65,7 +65,7 @@ export function useGameSession() {
   });
 
   const triggerBossBattle = () => {
-    store.status.value = 'BOSS_BATTLE';
+    store.enterBossBattle();
     pauseBGM();
     loop.stop();
   };
