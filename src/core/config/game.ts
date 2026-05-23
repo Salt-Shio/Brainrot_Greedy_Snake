@@ -12,6 +12,31 @@ export const GRID_SIZE = 20;
 export const MAP_MODE: MapMode = 'MIRROR_WRAP';
 
 /**
+ * 場上食物數量
+ */
+export const FOOD_COUNT = 5;
+
+/**
+ * 迷因種類總數 (對應 public/assets/memes 裡的檔案數量)
+ */
+export const TOTAL_MEME_TYPES = 6;
+
+/**
+ * 全域音效音量 (0.0 ~ 1.0)
+ */
+export const MASTER_VOLUME = 0.4;
+
+/**
+ * 背景音樂音量 (0.0 ~ 1.0)
+ */
+export const BGM_VOLUME = 0.4;
+
+/**
+ * 背景音樂檔案路徑
+ */
+export const BGM_URL = '/assets/sounds/bgm.m4a'; // 預設路徑，請確保檔案存在
+
+/**
  * 初始移動速度 (毫秒)
  */
 export const INITIAL_SPEED = 300;

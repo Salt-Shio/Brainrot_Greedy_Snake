@@ -1,8 +1,17 @@
-import type { Point, Direction } from './types';
-import { VECTOR_MAP, MAP_MODE } from './config/game';
+import type { Point, Direction, MemeFood } from './types';
+import { VECTOR_MAP, MAP_MODE } from '@/core/config/game';
+
+/**
+ * 從資源池中隨機挑選一個迷因食物
+ */
+export function getRandomMeme(pool: MemeFood[]): MemeFood {
+  const index = Math.floor(Math.random() * pool.length);
+  return pool[index];
+}
 
 /**
  * 處理座標循環 (Wrap Logic)
+
  * 根據 Mirror/Flip 規則進行座標轉換
  */
 export function wrapPosition(point: Point, gridSize: number): Point {
@@ -84,17 +93,18 @@ function getRandomPoint(gridSize: number): Point {
 }
 
 /**
- * 在地圖上隨機產生食物，且必須避開蛇身
+ * 在地圖上隨機產生食物，且必須避開蛇身與現有食物
  */
-export function generateFood(snakeBody: Point[], gridSize: number): Point {
+export function generateFood(snakeBody: Point[], gridSize: number, existingFoods: Point[] = []): Point {
   let newFood: Point;
   let isOccupied: boolean;
 
-  // 使用迴圈直到找到不在蛇身上的位置
-  // 對於 20x20 的網格來說，效能影響極小
+  // 使用迴圈直到找到不在蛇身上且不在現有食物位置的座標
   do {
     newFood = getRandomPoint(gridSize);
-    isOccupied = snakeBody.some(segment => segment.x === newFood.x && segment.y === newFood.y);
+    const isOnSnake = snakeBody.some(segment => segment.x === newFood.x && segment.y === newFood.y);
+    const isOnFood = existingFoods.some(food => food.x === newFood.x && food.y === newFood.y);
+    isOccupied = isOnSnake || isOnFood;
   } while (isOccupied);
 
   return newFood;

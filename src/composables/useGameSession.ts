@@ -2,7 +2,9 @@ import { ref } from 'vue';
 import { useSnakeStore } from './useSnakeStore';
 import { useGameLoop } from './useGameLoop';
 import { useInputController } from './useInputController';
+import { useAudioController } from './useAudioController';
 import type { SystemAction } from '@/core/input/types';
+import type { MemeFood } from '@/core/types';
 import * as CONFIG from '@/core/config';
 
 /**
@@ -17,10 +19,26 @@ import * as CONFIG from '@/core/config';
  */
 export function useGameSession() {
   const store = useSnakeStore();
+  const { playEffect, playBGM, pauseBGM, stopBGM } = useAudioController();
+
+  // 用於觸發 UI 閃爍特效的響應式狀態
+  const lastEatenMeme = ref<MemeFood | null>(null);
 
   // --- GameLoop ---
   const loop = useGameLoop(() => {
-    store.moveStep();
+    const eatenMeme = store.moveStep();
+    
+    // 如果吃到食物，播放對應的迷因音效並觸發閃爍特效
+    if (eatenMeme) {
+      playEffect(eatenMeme.soundUrl);
+      lastEatenMeme.value = { ...eatenMeme };
+    }
+
+    // 檢查是否遊戲結束，若是則暫停 BGM
+    if (store.status.value === 'GAMEOVER') {
+      pauseBGM();
+      loop.stop();
+    }
   });
 
   // --- 摩斯密碼挑戰 ---
@@ -47,6 +65,7 @@ export function useGameSession() {
       // IDLE 狀態：驗證摩斯挑戰
       if (buffer.value === challengeMorse.value) {
         store.startGame();
+        playBGM(); // 開始播放 BGM
         loop.start();
         clearBuffer();
       }
@@ -62,9 +81,11 @@ export function useGameSession() {
   const handlePauseToggle = () => {
     if (store.status.value === 'PLAYING') {
       store.pauseGame();
+      pauseBGM(); // 暫停 BGM
       loop.stop();
     } else if (store.status.value === 'PAUSED') {
       store.startGame();
+      playBGM(); // 恢復 BGM
       loop.start();
     }
   };
@@ -92,6 +113,7 @@ export function useGameSession() {
   const handleDirection = (newDir: Parameters<typeof store.changeDirection>[0]) => {
     if (store.status.value === 'IDLE' && store.controlMode.value === 'CLASSIC') {
       store.startGame();
+      playBGM(); // 經典模式開始也播放 BGM
       loop.start();
     }
     store.changeDirection(newDir);
@@ -109,6 +131,7 @@ export function useGameSession() {
    */
   const handleReset = () => {
     loop.stop();
+    stopBGM(); // 重設時停止 BGM
     store.initGame();
     generateChallenge();
   };
@@ -116,6 +139,7 @@ export function useGameSession() {
   return {
     // 挑戰相關
     challengeMorse,
+    lastEatenMeme,
     // 輸入控制器 (供 UI 使用)
     buffer,
     uiDisplay,

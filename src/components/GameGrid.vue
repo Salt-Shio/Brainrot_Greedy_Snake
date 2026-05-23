@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Point } from '@/core/types';
+import type { Point, FoodInstance } from '@/core/types';
 import { GRID_SIZE } from '@/core/config/game';
 
 interface Props {
   snake: Point[];
-  food: Point;
+  foods: FoodInstance[];
 }
 
 const props = defineProps<Props>();
@@ -24,10 +24,10 @@ const isSnakeHead = (x: number, y: number) => {
 };
 
 /**
- * 檢查是否為食物
+ * 獲取該座標的食物 (如果有)
  */
-const isFood = (x: number, y: number) => {
-  return props.food.x === x && props.food.y === y;
+const getFoodAt = (x: number, y: number): FoodInstance | undefined => {
+  return props.foods.find(f => f.position.x === x && f.position.y === y);
 };
 </script>
 
@@ -37,8 +37,8 @@ const isFood = (x: number, y: number) => {
     :style="{
       gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
       gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
-      width: 'min(90vw, 500px)',
-      height: 'min(90vw, 500px)'
+      width: 'min(90vw, 850px)',
+      height: 'min(90vw, 850px)'
     }"
   >
     <!-- 遍歷每一格 -->
@@ -46,7 +46,7 @@ const isFood = (x: number, y: number) => {
       <div 
         v-for="x in GRID_SIZE" 
         :key="`${x-1}-${y-1}`"
-        class="border border-slate-800/30 flex items-center justify-center text-[10px]"
+        class="border border-slate-800/30 flex items-center justify-center text-[10px] relative"
       >
         <!-- 蛇頭 -->
         <div 
@@ -58,11 +58,19 @@ const isFood = (x: number, y: number) => {
           v-else-if="isSnake(x-1, y-1)" 
           class="w-[85%] h-[85%] bg-green-600 rounded-sm"
         ></div>
-        <!-- 食物 -->
+        <!-- 食物 (迷因圖片) - 使用絕對定位防止撐開網格 -->
         <div 
-          v-else-if="isFood(x-1, y-1)" 
-          class="w-[70%] h-[70%] bg-rose-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.6)]"
-        ></div>
+          v-else-if="getFoodAt(x-1, y-1)" 
+          class="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+        >
+          <div class="w-[95%] h-[95%] bg-slate-800 rounded-sm border border-green-500/30 shadow-2xl flex items-center justify-center overflow-hidden">
+            <img 
+              :src="getFoodAt(x-1, y-1)?.meme.imageUrl" 
+              class="w-full h-full object-contain"
+              alt="Meme Food"
+            />
+          </div>
+        </div>
       </div>
     </template>
   </div>

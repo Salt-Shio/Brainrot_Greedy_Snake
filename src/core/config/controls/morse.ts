@@ -20,7 +20,7 @@ export const MORSE_CONFIG = {
   // 3. 單鍵模式設定 (SINGLE_KEY)
   SINGLE: {
     TRIGGER_KEY: ' ', // Space
-    SHORT_THRESHOLD: 200,
+    SHORT_THRESHOLD: 150,
   },
 
   // 4. 雙鍵模式設定 (TWIN_KEY)

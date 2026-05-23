@@ -9,6 +9,4 @@ export const INITIAL_STATE = {
     { x: 10, y: 11 },
     { x: 10, y: 12 },
   ] as Point[],
-
-  FOOD: { x: 5, y: 5 } as Point,
 } as const;

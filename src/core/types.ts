@@ -7,6 +7,23 @@ export interface Point {
 }
 
 /**
+ * 迷因食物資料結構
+ */
+export interface MemeFood {
+  id: string;
+  imageUrl: string;
+  soundUrl: string;
+}
+
+/**
+ * 食物實例 (位置 + 迷因)
+ */
+export interface FoodInstance {
+  position: Point;
+  meme: MemeFood;
+}
+
+/**
  * 遊戲目前的狀態
  */
 export type GameState = 'IDLE' | 'PLAYING' | 'GAMEOVER' | 'PAUSED';

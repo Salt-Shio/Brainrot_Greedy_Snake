@@ -9,45 +9,43 @@ import NavigationSidebar from './components/NavigationSidebar.vue';
 import IdleOverlay from './components/overlays/IdleOverlay.vue';
 import GameOverOverlay from './components/overlays/GameOverOverlay.vue';
 import PausedOverlay from './components/overlays/PausedOverlay.vue';
+import MemeFlashOverlay from './components/overlays/MemeFlashOverlay.vue';
 
 const store = useSnakeStore();
-const { challengeMorse, buffer, uiDisplay, handlePauseToggle, handleReset } = useGameSession();
+const { challengeMorse, lastEatenMeme, buffer, uiDisplay, handlePauseToggle, handleReset } = useGameSession();
 </script>
 
 <template>
   <div class="flex flex-col items-center justify-center min-h-screen p-4 select-none bg-slate-950 text-slate-200 font-sans">
-    <!-- Header -->
-    <header class="mb-8 text-center">
-      <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-green-400 to-emerald-600 tracking-tighter italic">
-        SNAKE.TS
-      </h1>
-      <p class="text-slate-500 font-bold text-xs tracking-[0.3em] uppercase mt-2">Precision Control MVP</p>
-    </header>
-
-    <!-- Score -->
-    <ScoreBoard :score="store.score.value" :status="store.status.value" />
-
     <!-- Main Game Area -->
-    <div class="flex items-center gap-12">
-      <NavigationSidebar 
-        v-if="store.status.value === 'PLAYING'"
-        :control-mode="store.controlMode.value"
-        :ui-display="uiDisplay"
-      />
+    <div class="flex items-start gap-12">
+      <div class="flex flex-col gap-8 w-48">
+        <!-- Score moved here -->
+        <ScoreBoard :score="store.score.value" :status="store.status.value" />
+
+        <NavigationSidebar 
+          v-if="store.status.value === 'PLAYING'"
+          :control-mode="store.controlMode.value"
+          :ui-display="uiDisplay"
+        />
+      </div>
 
       <div class="relative group">
         <!-- Game World -->
         <GameGrid 
           v-show="store.status.value === 'PLAYING' || store.status.value === 'PAUSED'"
           :snake="store.snake.value" 
-          :food="store.food.value" 
+          :foods="store.foods.value" 
         />
+        
+        <!-- Meme Flash Effect -->
+        <MemeFlashOverlay :meme="lastEatenMeme" />
         
         <!-- Overlays (IDLE / GAMEOVER) -->
         <div 
           v-if="store.status.value === 'IDLE' || store.status.value === 'GAMEOVER'"
           class="relative rounded-3xl overflow-hidden"
-          style="width: min(90vw, 500px); height: min(90vw, 500px);"
+          style="width: min(90vw, 850px); height: min(90vw, 850px);"
         >
           <IdleOverlay 
             v-if="store.status.value === 'IDLE'"
