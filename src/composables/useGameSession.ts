@@ -1,27 +1,28 @@
-import { ref } from 'vue';
 import { useSnakeStore } from '@/composables/useSnakeStore';
 import { useGameLoop } from '@/composables/useGameLoop';
 import { useInputController } from '@/composables/useInputController';
 import { useAudioController } from '@/composables/useAudioController';
 import { useBossSession } from '@/composables/useBossSession';
+import { useMorseChallenge } from '@/composables/useMorseChallenge';
+import { useMemeEffects } from '@/composables/useMemeEffects';
 import type { SystemAction } from '@/core/input/types';
-import type { MemeFood } from '@/core/types';
 import * as CONFIG from '@/core/config';
 
 /**
  * 遊戲流程協調器
  *
  * 職責：
- * - 摩斯密碼挑戰的生命週期（生成、驗證）
- * - 遊戲狀態轉換的業務邏輯（IDLE → PLAYING 的身分驗證）
- * - 暫停 / 繼續
- * - GameLoop 的啟停協調
- * - 輸入控制器的橋接
- * - Boss 戰鬥的啟動與結束協調
+ * - 整合多個單一職責的 Composables
+ * - 協調狀態機轉換（IDLE, PLAYING, PAUSED, GAMEOVER, BOSS_BATTLE）
+ * - 管理 GameLoop 的啟動與停止
  */
 export function useGameSession() {
   const store = useSnakeStore();
-  const { playEffect, playBGM, pauseBGM, stopBGM } = useAudioController();
+  const { playBGM, pauseBGM, stopBGM } = useAudioController();
+  
+  // 分解後的模組
+  const { challengeMorse, generateChallenge, verifyChallenge } = useMorseChallenge();
+  const { lastEatenMeme, triggerEatenEffect } = useMemeEffects();
 
   // --- Boss 戰鬥協調 ---
   const handleBossDefeat = () => {
@@ -40,17 +41,13 @@ export function useGameSession() {
     startBossBattle 
   } = useBossSession(handleBossDefeat);
 
-  // 用於觸發 UI 閃爍特效的響應式狀態
-  const lastEatenMeme = ref<MemeFood | null>(null);
-
-  // --- GameLoop ---
+  // --- GameLoop 核心循環 ---
   const loop = useGameLoop(() => {
     const eatenMeme = store.moveStep();
     
-    // 如果吃到食物，播放對應的迷因音效並觸發閃爍特效
+    // 1. 處理吃到食物
     if (eatenMeme) {
-      playEffect(eatenMeme.soundUrl);
-      lastEatenMeme.value = { ...eatenMeme };
+      triggerEatenEffect(eatenMeme);
 
       // 檢查是否達到觸發 Boss 的閾值
       if (store.eatenCount.value >= CONFIG.BOSS_TRIGGER_COUNT) {
@@ -58,7 +55,7 @@ export function useGameSession() {
       }
     }
 
-    // 檢查是否遊戲結束，若是則暫停 BGM
+    // 2. 處理遊戲結束
     if (store.status.value === 'GAMEOVER') {
       pauseBGM();
       loop.stop();
@@ -71,36 +68,22 @@ export function useGameSession() {
     loop.stop();
   };
 
-  // --- 摩斯密碼挑戰 ---
-  const challengeMorse = ref('');
-
-  const generateChallenge = () => {
-    const symbols = ['.', '-'];
-    challengeMorse.value = Array.from(
-      { length: CONFIG.MORSE_CONFIG.CHALLENGE.LENGTH },
-      () => symbols[Math.floor(Math.random() * 2)]
-    ).join('');
-  };
-
-  // 初始化挑戰
-  generateChallenge();
-
   // --- 系統事件處理 ---
 
   /**
-   * 處理提交判定（身分驗證 or 摩斯轉向）
+   * 處理提交判定 (身分驗證 or 摩斯轉向)
    */
   const handleSubmit = () => {
     if (store.status.value === 'IDLE') {
-      // IDLE 狀態：驗證摩斯挑戰
-      if (buffer.value === challengeMorse.value) {
+      // IDLE 狀態：驗證摩斯挑戰身分，成功則開局
+      if (verifyChallenge(buffer.value)) {
         store.startGame();
-        playBGM(); // 開始播放 BGM
+        playBGM();
         loop.start();
         clearBuffer();
       }
     } else if (store.status.value === 'PLAYING') {
-      // PLAYING 狀態：解析摩斯指令
+      // PLAYING 狀態：手動提交摩斯指令
       submitBuffer();
     }
   };
@@ -111,17 +94,17 @@ export function useGameSession() {
   const handlePauseToggle = () => {
     if (store.status.value === 'PLAYING') {
       store.pauseGame();
-      pauseBGM(); // 暫停 BGM
+      pauseBGM();
       loop.stop();
     } else if (store.status.value === 'PAUSED') {
       store.startGame();
-      playBGM(); // 恢復 BGM
+      playBGM();
       loop.start();
     }
   };
 
   /**
-   * 處理系統功能鍵
+   * 處理系統功能鍵 (來自 InputController)
    */
   const handleSystem = (action: SystemAction) => {
     switch (action) {
@@ -138,18 +121,18 @@ export function useGameSession() {
   };
 
   /**
-   * 處理方向輸入（含 CLASSIC 模式的自動開局）
+   * 處理方向輸入 (含 CLASSIC 模式的自動開局)
    */
   const handleDirection = (newDir: Parameters<typeof store.changeDirection>[0]) => {
     if (store.status.value === 'IDLE' && store.controlMode.value === 'CLASSIC') {
       store.startGame();
-      playBGM(); // 經典模式開始也播放 BGM
+      playBGM();
       loop.start();
     }
     store.changeDirection(newDir);
   };
 
-  // --- 輸入控制器 ---
+  // --- 輸入控制器對接 ---
   const { buffer, uiDisplay, submitBuffer, clearBuffer } = useInputController(
     store.controlMode,
     handleDirection,
@@ -157,30 +140,28 @@ export function useGameSession() {
   );
 
   /**
-   * 重置遊戲並重新生成挑戰
+   * 重置遊戲
    */
   const handleReset = () => {
     loop.stop();
-    stopBGM(); // 重設時停止 BGM
+    stopBGM();
     store.initGame();
-    generateChallenge();
+    generateChallenge(); // 重置時重新生成挑戰碼
   };
 
   return {
-    // 挑戰相關
+    // 狀態與資料
     challengeMorse,
     lastEatenMeme,
-    // Boss 相關
     isBossActive,
     bossHitCount,
     bossTargetCount,
     isBossCameraReady,
     latestResults,
-    startBossBattle,
-    // 輸入控制器 (供 UI 使用)
     buffer,
     uiDisplay,
-    // 事件處理
+    // 行動與事件
+    startBossBattle,
     handlePauseToggle,
     handleReset,
   };

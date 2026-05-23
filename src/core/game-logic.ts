@@ -1,4 +1,4 @@
-import type { Point, Direction, MapMode, VectorMap, MemeFood } from './types';
+import type { Point, Direction, MapMode, VectorMap, MemeFood, GameState, FoodInstance } from './types';
 
 /**
  * 從資源池中隨機挑選一個迷因食物
@@ -105,4 +105,85 @@ export function generateFood(snakeBody: Point[], gridSize: number, existingFoods
   if (available.length === 0) return null;
 
   return available[Math.floor(Math.random() * available.length)];
+}
+
+/**
+ * 遊戲下一幀狀態的計算結果
+ */
+export interface GameMoveResult {
+  snake: Point[];
+  foods: FoodInstance[];
+  scoreDelta: number;
+  eatenMeme: MemeFood | null;
+  status: GameState;
+}
+
+/**
+ * 計算遊戲下一步的核心純函式 (不依賴任何外部狀態或 Vue)
+ */
+export function computeNextMove(params: {
+  snake: Point[];
+  foods: FoodInstance[];
+  direction: Direction;
+  gridSize: number;
+  mapMode: MapMode;
+  vectorMap: VectorMap;
+  memePool: MemeFood[];
+}): GameMoveResult {
+  const { snake, foods, direction, gridSize, mapMode, vectorMap, memePool } = params;
+  
+  // 1. 計算下一格位置
+  const head = snake[0];
+  const nextHead = getNextHeadPosition(head, direction, gridSize, mapMode, vectorMap);
+
+  // 2. 碰撞檢查
+  const hitWall = mapMode === 'BOUNDARY' && isWallCollision(nextHead, gridSize);
+  if (hitWall || isSelfCollision(nextHead, snake)) {
+    return {
+      snake,
+      foods,
+      scoreDelta: 0,
+      eatenMeme: null,
+      status: 'GAMEOVER',
+    };
+  }
+
+  // 3. 移動邏輯
+  const newSnake = [nextHead, ...snake];
+  const newFoods = [...foods];
+  let scoreDelta = 0;
+  let eatenMeme: MemeFood | null = null;
+
+  // 檢查是否吃到任何一個食物
+  const foodIndex = newFoods.findIndex(f => isEating(nextHead, f.position));
+
+  if (foodIndex !== -1) {
+    // 吃到食物：分數增加，長度增加 (不 pop 尾巴)
+    scoreDelta = 10;
+    eatenMeme = { ...newFoods[foodIndex].meme };
+    
+    // 生成新的食物替換掉被吃掉的
+    const otherFoodPositions = newFoods.filter((_, i) => i !== foodIndex).map(f => f.position);
+    const newPos = generateFood(newSnake, gridSize, otherFoodPositions);
+    
+    if (newPos !== null) {
+      newFoods[foodIndex] = { 
+        position: newPos, 
+        meme: getRandomMeme(memePool) 
+      };
+    } else {
+      newFoods.splice(foodIndex, 1);
+    }
+  } else {
+    // 沒吃到食物：移動 (pop 尾巴)
+    newSnake.pop();
+  }
+
+  return {
+    snake: newSnake,
+    foods: newFoods,
+    scoreDelta,
+    eatenMeme,
+    status: 'PLAYING',
+  };
 }

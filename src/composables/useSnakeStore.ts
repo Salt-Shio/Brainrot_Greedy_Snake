@@ -26,18 +26,21 @@ const isPlaying = computed(() => status.value === 'PLAYING');
 const initGame = () => {
   snake.value = [...CONFIG.INITIAL_STATE.SNAKE.map(p => ({ ...p }))];
   
-  // 初始化多個食物
-  foods.value = [];
+  // 使用 core 邏輯初始化多個食物
+  const newFoods: FoodInstance[] = [];
   for (let i = 0; i < CONFIG.FOOD_COUNT; i++) {
     const pos = LOGIC.generateFood(
       snake.value, 
       CONFIG.GRID_SIZE, 
-      foods.value.map(f => f.position)
+      newFoods.map(f => f.position)
     );
-    if (pos === null) break; // 地圖已滿，停止生成（理論上不應發生）
-    const meme = LOGIC.getRandomMeme(CONFIG.MEME_POOL as MemeFood[]);
-    foods.value.push({ position: pos, meme });
+    if (pos === null) break;
+    newFoods.push({ 
+      position: pos, 
+      meme: LOGIC.getRandomMeme(CONFIG.MEME_POOL as MemeFood[]) 
+    });
   }
+  foods.value = newFoods;
 
   direction.value = 'UP';
   nextDirection.value = 'UP';
@@ -66,57 +69,28 @@ const moveStep = (): MemeFood | null => {
   // 1. 更新目前移動方向 (從緩衝取值)
   direction.value = nextDirection.value;
 
-  // 2. 計算下一格位置
-  const head = snake.value[0];
-  const nextHead = LOGIC.getNextHeadPosition(
-    head,
-    direction.value,
-    CONFIG.GRID_SIZE,
-    CONFIG.MAP_MODE,
-    CONFIG.VECTOR_MAP,
-  );
+  // 2. 呼叫核心純邏輯計算下一幀
+  const result = LOGIC.computeNextMove({
+    snake: snake.value,
+    foods: foods.value,
+    direction: direction.value,
+    gridSize: CONFIG.GRID_SIZE,
+    mapMode: CONFIG.MAP_MODE,
+    vectorMap: CONFIG.VECTOR_MAP,
+    memePool: CONFIG.MEME_POOL as MemeFood[],
+  });
 
-  // 3. 碰撞檢查
-  const hitWall = CONFIG.MAP_MODE === 'BOUNDARY' && LOGIC.isWallCollision(nextHead, CONFIG.GRID_SIZE);
-  if (hitWall || LOGIC.isSelfCollision(nextHead, snake.value)) {
-    status.value = 'GAMEOVER';
-    return null;
-  }
+  // 3. 更新響應式狀態
+  snake.value = result.snake;
+  foods.value = result.foods;
+  score.value += result.scoreDelta;
+  status.value = result.status;
 
-  // 4. 移動邏輯
-  const newSnake = [nextHead, ...snake.value];
-  let eatenMeme: MemeFood | null = null;
-
-  // 檢查是否吃到任何一個食物
-  const foodIndex = foods.value.findIndex(f => LOGIC.isEating(nextHead, f.position));
-
-  if (foodIndex !== -1) {
-    // 吃到食物：長度增加 (不 pop 尾巴)，分數增加，更換該食物位置
-    score.value += 10;
+  if (result.eatenMeme) {
     eatenCount.value += 1;
-    eatenMeme = { ...foods.value[foodIndex].meme };
-    
-    // 生成新的食物座標與迷因替換掉被吃掉的
-    const newPos = LOGIC.generateFood(
-      newSnake, 
-      CONFIG.GRID_SIZE, 
-      foods.value.filter((_, i) => i !== foodIndex).map(f => f.position)
-    );
-    const newMeme = LOGIC.getRandomMeme(CONFIG.MEME_POOL as MemeFood[]);
-    
-    if (newPos !== null) {
-      foods.value[foodIndex] = { position: newPos, meme: newMeme };
-    } else {
-      // 地圖已滿，移除食物但不補充（極端情況）
-      foods.value.splice(foodIndex, 1);
-    }
-  } else {
-    // 沒吃到食物：移動 (pop 尾巴)
-    newSnake.pop();
   }
 
-  snake.value = newSnake;
-  return eatenMeme;
+  return result.eatenMeme;
 };
 
 const startGame = () => {

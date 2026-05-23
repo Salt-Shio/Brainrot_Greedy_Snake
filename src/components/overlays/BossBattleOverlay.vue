@@ -111,11 +111,11 @@ watch(() => props.latestResults, (results) => {
       </div>
     </div>
 
-    <!-- 底部：攝影機預覽與骨架繪製 -->
-    <div class="absolute bottom-8 right-8 w-48 h-36 bg-slate-900 border-4 border-slate-700 rounded-xl overflow-hidden shadow-2xl relative">
+    <!-- 底部：攝影機預覽與骨架繪製 (子母畫面 PiP) -->
+    <div class="absolute bottom-6 right-6 w-40 h-30 bg-slate-900 border-2 border-slate-700 rounded-lg overflow-hidden shadow-2xl z-20 group hover:scale-110 transition-transform duration-300">
       <video 
         ref="videoRef" 
-        class="w-full h-full object-cover -scale-x-100" 
+        class="w-full h-full object-cover -scale-x-100 opacity-60" 
         autoplay 
         playsinline
       ></video>
@@ -126,6 +126,10 @@ watch(() => props.latestResults, (results) => {
         width="640"
         height="480"
       ></canvas>
+      <!-- 狀態標籤 -->
+      <div class="absolute bottom-1 right-1 px-1.5 py-0.5 bg-rose-600 text-[8px] font-black text-white rounded-sm uppercase tracking-tighter">
+        Live Feed
+      </div>
     </div>
 
     <!-- 滿分時的全螢幕白閃特效 -->
