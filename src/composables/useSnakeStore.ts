@@ -109,7 +109,14 @@ const pauseGame = () => {
 };
 
 /**
- * 循環切換控制模式 (SINGLE_KEY → TWIN_KEY → CLASSIC → ...)
+ * 直接設定控制模式
+ */
+const setControlMode = (mode: InputMode) => {
+  controlMode.value = mode;
+};
+
+/**
+ * 循環切換控制模式 (保留供其他可能的快捷鍵使用)
  */
 const toggleControlMode = () => {
   const modes: InputMode[] = ['SINGLE_KEY', 'TWIN_KEY', 'CLASSIC'];
@@ -158,6 +165,7 @@ export function useSnakeStore() {
     moveStep,
     startGame,
     pauseGame,
+    setControlMode,
     toggleControlMode,
     resetEatenCount,
     enterBossBattle,

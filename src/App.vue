@@ -69,7 +69,7 @@ const {
             :buffer="buffer"
             :ui-display="uiDisplay"
             :morse-map="MORSE_CONFIG.MAP"
-            @toggle-mode="store.toggleControlMode()"
+            @set-mode="store.setControlMode"
           />
           <GameOverOverlay 
             v-else-if="store.status.value === 'GAMEOVER'"
@@ -110,16 +110,6 @@ const {
         </div>
       </div>
     </div>
-
-    <!-- Footer -->
-    <footer class="mt-12 text-slate-600 text-[10px] font-bold tracking-widest uppercase flex gap-8">
-      <div class="flex items-center gap-2">
-        <div class="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_5px_rgba(34,197,94,0.5)]"></div> Snake
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="w-2 h-2 bg-rose-500 rounded-full shadow-[0_0_5px_rgba(244,63,94,0.5)]"></div> Food
-      </div>
-    </footer>
   </div>
 </template>
 

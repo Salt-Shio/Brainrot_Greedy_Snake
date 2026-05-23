@@ -11,21 +11,38 @@ defineProps<{
 }>();
 
 defineEmits<{
-  (e: 'toggleMode'): void;
+  (e: 'setMode', mode: InputMode): void;
 }>();
 </script>
 
 <template>
   <div class="w-full px-8 flex flex-col items-center justify-center h-full bg-slate-900 border-4 border-slate-700 rounded-3xl">
-    <!-- Mode Toggle -->
+    <!-- Mode Selection -->
     <div class="flex justify-center mb-6">
-      <button 
-        @click="$emit('toggleMode')"
-        class="flex items-center gap-2 px-4 py-1.5 bg-slate-800 rounded-full border border-slate-700 hover:bg-slate-700 transition-colors relative"
+      <div 
+        class="flex items-center gap-2 px-2 py-1.5 bg-slate-800 rounded-full border border-slate-700 relative"
       >
-        <span class="text-[9px] font-black tracking-widest uppercase" :class="controlMode === 'SINGLE_KEY' ? 'text-green-400' : 'text-slate-500'">Single</span>
-        <span class="text-[9px] font-black tracking-widest uppercase" :class="controlMode === 'TWIN_KEY' ? 'text-green-400' : 'text-slate-500'">Twin</span>
-        <span class="text-[9px] font-black tracking-widest uppercase" :class="controlMode === 'CLASSIC' ? 'text-green-400' : 'text-slate-500'">Classic</span>
+        <button 
+          @click="$emit('setMode', 'SINGLE_KEY')"
+          class="px-3 py-1 text-[9px] font-black tracking-widest uppercase transition-colors z-10"
+          :class="controlMode === 'SINGLE_KEY' ? 'text-green-400' : 'text-slate-500 hover:text-slate-300'"
+        >
+          Single
+        </button>
+        <button 
+          @click="$emit('setMode', 'TWIN_KEY')"
+          class="px-3 py-1 text-[9px] font-black tracking-widest uppercase transition-colors z-10"
+          :class="controlMode === 'TWIN_KEY' ? 'text-green-400' : 'text-slate-500 hover:text-slate-300'"
+        >
+          Twin
+        </button>
+        <button 
+          @click="$emit('setMode', 'CLASSIC')"
+          class="px-3 py-1 text-[9px] font-black tracking-widest uppercase transition-colors z-10"
+          :class="controlMode === 'CLASSIC' ? 'text-green-400' : 'text-slate-500 hover:text-slate-300'"
+        >
+          Classic
+        </button>
         <div 
           class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full shadow-[0_0_5px_rgba(34,197,94,0.8)] transition-all duration-300"
           :class="{
@@ -34,7 +51,7 @@ defineEmits<{
             'translate-x-[45px]': controlMode === 'CLASSIC'
           }"
         ></div>
-      </button>
+      </div>
     </div>
 
     <!-- Morse Section -->

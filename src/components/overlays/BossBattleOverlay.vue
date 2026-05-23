@@ -97,9 +97,6 @@ watch(() => props.latestResults, (results) => {
       >
         {{ count }}
       </div>
-      <div class="text-3xl text-rose-500 font-black mt-2 tracking-[0.5em] opacity-80">
-        / {{ targetCount }}
-      </div>
     </div>
 
     <!-- 底部：攝影機預覽與骨架繪製 (子母畫面 PiP) -->
