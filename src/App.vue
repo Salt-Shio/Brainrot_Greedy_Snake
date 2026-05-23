@@ -87,7 +87,6 @@ const {
           <BossBattleOverlay 
             :count="bossHitCount"
             :target-count="bossTargetCount"
-            :score="store.score.value"
             :is-camera-ready="isBossCameraReady"
             :latest-results="latestResults"
             @video-ready="startBossBattle"
