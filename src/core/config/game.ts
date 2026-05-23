@@ -69,7 +69,7 @@ export const OPPOSITE_DIRECTION: Record<Direction, Direction> = {
 /**
  * 吃掉幾個食物後觸發 Boss 戰鬥
  */
-export const BOSS_TRIGGER_COUNT = 10;
+export const BOSS_TRIGGER_COUNT = 3;
 
 /**
  * Boss 戰鬥需要完成的揮手次數

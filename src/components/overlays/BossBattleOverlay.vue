@@ -15,10 +15,14 @@ const emit = defineEmits<{
 
 const videoRef = ref<HTMLVideoElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
+const bossVideoRef = ref<HTMLVideoElement | null>(null);
 
 onMounted(() => {
   if (videoRef.value) {
     emit('videoReady', videoRef.value);
+  }
+  if (bossVideoRef.value) {
+    bossVideoRef.value.volume = 0.8; // 設定 Boss 影片音量為 80%
   }
 });
 
@@ -63,11 +67,11 @@ watch(() => props.latestResults, (results) => {
     <!-- 視覺中心：Boss 背景影片 (需要您放置檔案) -->
     <!-- 影片來源：/public/assets/memes/boss_bg.mp4 -->
     <video 
+      ref="bossVideoRef"
       :src="'/assets/memes/boss_bg.mp4'" 
       class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen scale-110"
       autoplay 
       loop 
-      muted 
       playsinline
     ></video>
 
