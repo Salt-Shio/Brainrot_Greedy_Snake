@@ -24,6 +24,13 @@ export interface FoodInstance {
 }
 
 /**
+ * Boss 戰鬥判定模式
+ * - GESTURE: 手勢追蹤 (Mediapipe)
+ * - NUMERIC: 鍵盤輸入 6 與 7
+ */
+export type BossBattleMode = 'GESTURE' | 'NUMERIC';
+
+/**
  * 遊戲目前的狀態
  */
 export type GameState = 'IDLE' | 'PLAYING' | 'GAMEOVER' | 'PAUSED' | 'BOSS_BATTLE';

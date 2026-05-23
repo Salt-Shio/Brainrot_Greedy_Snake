@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
+import type { BossBattleMode } from '@/core/types';
 
 const props = defineProps<{
   count: number;
   targetCount: number;
   isCameraReady: boolean;
-  latestResults: any; // 接收辨識結果
+  latestResults: any;
+  mode: BossBattleMode; // 接收模式
 }>();
 
 const emit = defineEmits<{
@@ -78,12 +80,19 @@ watch(() => props.latestResults, (results) => {
       <h2 class="text-4xl font-black text-rose-500 uppercase tracking-widest animate-bounce">
         BOSS ENCOUNTER
       </h2>
-      <p v-if="!isCameraReady" class="text-yellow-400 font-mono mt-2 animate-pulse text-xs">
-        Initializing Vision System...
-      </p>
-      <p v-else class="text-green-400 font-mono mt-2 font-bold tracking-widest text-xs">
-        WAVE YOUR HANDS ALTERNATELY!
-      </p>
+      <template v-if="mode === 'GESTURE'">
+        <p v-if="!isCameraReady" class="text-yellow-400 font-mono mt-2 animate-pulse text-xs">
+          Initializing Vision System...
+        </p>
+        <p v-else class="text-green-400 font-mono mt-2 font-bold tracking-widest text-xs">
+          WAVE YOUR HANDS ALTERNATELY!
+        </p>
+      </template>
+      <template v-else>
+        <p class="text-green-400 font-mono mt-2 font-bold tracking-widest text-xs">
+          PRESS <span class="text-white bg-rose-600 px-2 rounded">6</span> AND <span class="text-white bg-rose-600 px-2 rounded">7</span> ALTERNATELY!
+        </p>
+      </template>
     </div>
 
     <!-- 中間：巨大的計數器 -->
@@ -100,7 +109,10 @@ watch(() => props.latestResults, (results) => {
     </div>
 
     <!-- 底部：攝影機預覽與骨架繪製 (子母畫面 PiP) -->
-    <div class="absolute bottom-6 right-6 w-40 h-30 bg-slate-900 border-2 border-slate-700 rounded-lg overflow-hidden shadow-2xl z-20 group hover:scale-110 transition-transform duration-300">
+    <div 
+      v-show="mode === 'GESTURE'"
+      class="absolute bottom-6 right-6 w-40 h-30 bg-slate-900 border-2 border-slate-700 rounded-lg overflow-hidden shadow-2xl z-20 group hover:scale-110 transition-transform duration-300"
+    >
       <video 
         ref="videoRef" 
         class="w-full h-full object-cover -scale-x-100 opacity-60" 

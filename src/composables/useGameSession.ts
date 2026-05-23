@@ -39,7 +39,7 @@ export function useGameSession() {
     isCameraReady: isBossCameraReady,
     latestResults,
     startBossBattle 
-  } = useBossSession(handleBossDefeat);
+  } = useBossSession(store.bossBattleMode, handleBossDefeat);
 
   // --- GameLoop 核心循環 ---
   const loop = useGameLoop(() => {

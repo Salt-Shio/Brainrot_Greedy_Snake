@@ -1,17 +1,14 @@
-import { ref, shallowRef } from 'vue';
+import { ref, shallowRef, onUnmounted, computed } from 'vue';
 import { detectAlternatingMovement, getHandRefY, type HandSide } from '@/core/boss-logic';
 import { BOSS_TARGET_COUNT } from '@/core/config/game';
 import { useVisionService } from '@/composables/useVisionService';
+import type { BossBattleMode } from '@/core/types';
 
 /**
  * Boss 戰鬥會話管理
- * 職責：
- * - 追蹤戰鬥進度 (hit count)
- * - 判斷戰鬥勝利/失敗條件
- * - 呼叫核心判定邏輯
  */
-export function useBossSession(onDefeat: () => void) {
-  const { isReady: isCameraReady, init: initVision, stop: stopVision } = useVisionService();
+export function useBossSession(mode: { value: BossBattleMode }, onDefeat: () => void) {
+  const { isReady: isVisionReady, init: initVision, stop: stopVision } = useVisionService();
 
   // 狀態
   const isActive = ref(false);
@@ -19,25 +16,22 @@ export function useBossSession(onDefeat: () => void) {
   const targetCount = BOSS_TARGET_COUNT;
   const latestResults = shallowRef<any>(null);
   
-  // 判定暫存變數 (在這裡，prevY 代表的是「自上次得分後的最低點位置」)
+  // 判定暫存變數
   let prevLeftY: number | null = null;
   let prevRightY: number | null = null;
   let lastScoredHand: HandSide | null = null;
+  let lastScoredNum: string | null = null;
 
   /**
-   * 處理每一幀的辨識結果
+   * 處理每一幀的辨識結果 (手勢模式)
    */
   const onResults = (results: any) => {
-    if (!isActive.value) return;
+    if (!isActive.value || mode.value !== 'GESTURE') return;
 
-    // 保存結果供 UI 繪製
     latestResults.value = results;
-
-    // 取得目前參考點高度
     const currentLeftY = getHandRefY(results, 'Left');
     const currentRightY = getHandRefY(results, 'Right');
 
-    // 1. 動態更新最低點 (Y 越大代表位置越低)
     if (currentLeftY !== null) {
       if (prevLeftY === null || currentLeftY > prevLeftY) prevLeftY = currentLeftY;
     }
@@ -45,26 +39,29 @@ export function useBossSession(onDefeat: () => void) {
       if (prevRightY === null || currentRightY > prevRightY) prevRightY = currentRightY;
     }
 
-    // 2. 執行判定
-    const movement = detectAlternatingMovement(
-      results, 
-      prevLeftY, 
-      prevRightY, 
-      lastScoredHand, 
-      0.06 // 只要向上揮 6% 畫面高度就算一次
-    );
+    const movement = detectAlternatingMovement(results, prevLeftY, prevRightY, lastScoredHand, 0.06);
 
     if (movement?.scored) {
       count.value++;
       lastScoredHand = movement.hand;
-
-      // 重要：得分後立刻將該手的參考點重置為目前高度，重新開始下一波震動追蹤
       if (movement.hand === 'Left') prevLeftY = currentLeftY;
       else prevRightY = currentRightY;
 
-      if (count.value >= targetCount) {
-        handleVictory();
-      }
+      if (count.value >= targetCount) handleVictory();
+    }
+  };
+
+  /**
+   * 處理鍵盤輸入 (數字模式)
+   */
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (!isActive.value || mode.value !== 'NUMERIC') return;
+
+    const key = e.key;
+    if ((key === '6' || key === '7') && key !== lastScoredNum) {
+      count.value++;
+      lastScoredNum = key;
+      if (count.value >= targetCount) handleVictory();
     }
   };
 
@@ -74,12 +71,18 @@ export function useBossSession(onDefeat: () => void) {
   const startBossBattle = async (video: HTMLVideoElement) => {
     isActive.value = true;
     count.value = 0;
-    prevLeftY = null;
-    prevRightY = null;
-    lastScoredHand = null;
     
-    // 初始化 Vision 服務並註冊回調
-    await initVision(video, onResults);
+    if (mode.value === 'GESTURE') {
+      prevLeftY = null;
+      prevRightY = null;
+      lastScoredHand = null;
+      await initVision(video, onResults);
+    } else {
+      lastScoredNum = null;
+      // 確保不重複監聽
+      window.removeEventListener('keydown', handleKeyDown);
+      window.addEventListener('keydown', handleKeyDown);
+    }
   };
 
   /**
@@ -87,15 +90,24 @@ export function useBossSession(onDefeat: () => void) {
    */
   const handleVictory = () => {
     isActive.value = false;
-    stopVision();
+    if (mode.value === 'GESTURE') {
+      stopVision();
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
     onDefeat();
   };
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown);
+  });
 
   return {
     isActive,
     count,
     targetCount,
-    isCameraReady,
+    // 使用 computed 確保響應性
+    isCameraReady: computed(() => mode.value === 'GESTURE' ? isVisionReady.value : true),
     latestResults,
     startBossBattle
   };

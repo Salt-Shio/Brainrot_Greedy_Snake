@@ -65,11 +65,13 @@ const {
           <IdleOverlay 
             v-if="store.status.value === 'IDLE'"
             :control-mode="store.controlMode.value"
+            :boss-battle-mode="store.bossBattleMode.value"
             :challenge-morse="challengeMorse"
             :buffer="buffer"
             :ui-display="uiDisplay"
             :morse-map="MORSE_CONFIG.MAP"
             @set-mode="store.setControlMode"
+            @set-boss-mode="store.setBossBattleMode"
           />
           <GameOverOverlay 
             v-else-if="store.status.value === 'GAMEOVER'"
@@ -89,6 +91,7 @@ const {
             :target-count="bossTargetCount"
             :is-camera-ready="isBossCameraReady"
             :latest-results="latestResults"
+            :mode="store.bossBattleMode.value"
             @video-ready="startBossBattle"
           />
         </div>

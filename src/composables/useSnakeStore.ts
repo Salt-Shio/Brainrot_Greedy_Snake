@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import type { Point, Direction, GameState, MemeFood, FoodInstance } from '@/core/types';
+import type { Point, Direction, GameState, MemeFood, FoodInstance, BossBattleMode } from '@/core/types';
 import type { InputMode } from '@/core/input/types';
 import * as CONFIG from '@/core/config';
 import * as LOGIC from '@/core/game-logic';
@@ -13,6 +13,7 @@ const status = ref<GameState>('IDLE');
 const score = ref(0);
 const eatenCount = ref(0);
 const controlMode = ref<InputMode>(CONFIG.DEFAULT_CONTROL_MODE);
+const bossBattleMode = ref<BossBattleMode>('GESTURE');
 
 // --- Getters ---
 const isGameOver = computed(() => status.value === 'GAMEOVER');
@@ -146,6 +147,13 @@ const resumeFromBoss = () => {
   }
 };
 
+/**
+ * 直接設定 Boss 戰鬥模式
+ */
+const setBossBattleMode = (mode: BossBattleMode) => {
+  bossBattleMode.value = mode;
+};
+
 export function useSnakeStore() {
   return {
     // State
@@ -156,6 +164,7 @@ export function useSnakeStore() {
     score,
     eatenCount,
     controlMode,
+    bossBattleMode,
     // Getters
     isGameOver,
     isPlaying,
@@ -166,6 +175,7 @@ export function useSnakeStore() {
     startGame,
     pauseGame,
     setControlMode,
+    setBossBattleMode,
     toggleControlMode,
     resetEatenCount,
     enterBossBattle,

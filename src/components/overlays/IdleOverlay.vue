@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { Direction } from '@/core/types';
+import type { Direction, BossBattleMode } from '@/core/types';
 import type { InputMode, KeyHint } from '@/core/input/types';
 
 defineProps<{
   controlMode: InputMode;
+  bossBattleMode: BossBattleMode;
   challengeMorse: string;
   buffer: string;
   uiDisplay: KeyHint[];
@@ -12,13 +13,15 @@ defineProps<{
 
 defineEmits<{
   (e: 'setMode', mode: InputMode): void;
+  (e: 'setBossMode', mode: BossBattleMode): void;
 }>();
 </script>
 
 <template>
-  <div class="w-full px-8 flex flex-col items-center justify-center h-full bg-slate-900 border-4 border-slate-700 rounded-3xl">
+  <div class="w-full px-8 flex flex-col items-center justify-center h-full bg-slate-900 border-4 border-slate-700 rounded-3xl overflow-y-auto py-8">
     <!-- Mode Selection -->
-    <div class="flex justify-center mb-6">
+    <div class="flex flex-col items-center gap-2 mb-6">
+      <p class="text-slate-500 text-[9px] uppercase tracking-widest font-black">Snake Control</p>
       <div 
         class="flex items-center gap-2 px-2 py-1.5 bg-slate-800 rounded-full border border-slate-700 relative"
       >
@@ -49,6 +52,36 @@ defineEmits<{
             '-translate-x-[45px]': controlMode === 'SINGLE_KEY',
             '-translate-x-0': controlMode === 'TWIN_KEY',
             'translate-x-[45px]': controlMode === 'CLASSIC'
+          }"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Boss Mode Selection -->
+    <div class="flex flex-col items-center gap-2 mb-8">
+      <p class="text-slate-500 text-[9px] uppercase tracking-widest font-black">Boss Battle Mode</p>
+      <div 
+        class="flex items-center gap-2 px-2 py-1 bg-slate-800 rounded-full border border-slate-700 relative"
+      >
+        <button 
+          @click="$emit('setBossMode', 'GESTURE')"
+          class="px-3 py-1 text-[9px] font-black tracking-widest uppercase transition-colors z-10"
+          :class="bossBattleMode === 'GESTURE' ? 'text-rose-400' : 'text-slate-500 hover:text-slate-300'"
+        >
+          Gesture (Camera)
+        </button>
+        <button 
+          @click="$emit('setBossMode', 'NUMERIC')"
+          class="px-3 py-1 text-[9px] font-black tracking-widest uppercase transition-colors z-10"
+          :class="bossBattleMode === 'NUMERIC' ? 'text-rose-400' : 'text-slate-500 hover:text-slate-300'"
+        >
+          Numeric (6/7)
+        </button>
+        <div 
+          class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-rose-500 rounded-full shadow-[0_0_5px_rgba(244,63,94,0.8)] transition-all duration-300"
+          :class="{
+            '-translate-x-[45px]': bossBattleMode === 'GESTURE',
+            'translate-x-[45px]': bossBattleMode === 'NUMERIC'
           }"
         ></div>
       </div>
