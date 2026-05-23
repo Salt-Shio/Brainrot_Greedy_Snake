@@ -1,5 +1,5 @@
 import { ref, onUnmounted, shallowRef } from 'vue';
-import { detectAlternatingMovement, getHandCenterY, type HandSide } from '@/core/boss-logic';
+import { detectAlternatingMovement, getHandRefY, type HandSide } from '@/core/boss-logic';
 import { BOSS_TARGET_COUNT } from '@/core/config/game';
 
 const MEDIAPIPE_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe';
@@ -36,7 +36,7 @@ export function useBossSession(onDefeat: () => void) {
   const camera = shallowRef<any>(null);
   const videoElement = shallowRef<HTMLVideoElement | null>(null);
 
-  // 判定暫存變數
+  // 判定暫存變數 (在這裡，prevY 代表的是「自上次得分後的最低點位置」)
   let prevLeftY: number | null = null;
   let prevRightY: number | null = null;
   let lastScoredHand: HandSide | null = null;
@@ -75,8 +75,8 @@ export function useBossSession(onDefeat: () => void) {
     hands.setOptions({
       maxNumHands: 2,
       modelComplexity: 1, // 0或1，1比較準但吃效能
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
+      minDetectionConfidence: 0.4, // 降低門檻以應對高速移動
+      minTrackingConfidence: 0.4
     });
 
     // 2. 註冊每幀的回調
@@ -113,12 +113,25 @@ export function useBossSession(onDefeat: () => void) {
     // 保存結果供 UI 繪製
     latestResults.value = results;
 
+    // 取得目前參考點高度
+    const currentLeftY = getHandRefY(results, 'Left');
+    const currentRightY = getHandRefY(results, 'Right');
+
+    // 1. 動態更新最低點 (Y 越大代表位置越低)
+    if (currentLeftY !== null) {
+      if (prevLeftY === null || currentLeftY > prevLeftY) prevLeftY = currentLeftY;
+    }
+    if (currentRightY !== null) {
+      if (prevRightY === null || currentRightY > prevRightY) prevRightY = currentRightY;
+    }
+
+    // 2. 執行判定
     const movement = detectAlternatingMovement(
       results, 
       prevLeftY, 
       prevRightY, 
       lastScoredHand, 
-      0.12 // 閾值：12% 的畫面高度
+      0.06 // 只要向上揮 6% 畫面高度就算一次，適合極速抖動
     );
 
     if (movement?.scored) {
@@ -126,18 +139,14 @@ export function useBossSession(onDefeat: () => void) {
       count.value++;
       lastScoredHand = movement.hand;
 
+      // 重要：得分後立刻將該手的參考點重置為目前高度，重新開始下一波震動追蹤
+      if (movement.hand === 'Left') prevLeftY = currentLeftY;
+      else prevRightY = currentRightY;
+
       if (count.value >= targetCount) {
         handleDefeat();
       }
     }
-
-    // 更新歷史資料
-    const currentLeftY = getHandCenterY(results, 'Left');
-    const currentRightY = getHandCenterY(results, 'Right');
-
-    // 只有在當前幀有偵測到手時，才更新 prevY，避免因為手短暫離開畫面而清空記錄
-    if (currentLeftY !== null) prevLeftY = currentLeftY;
-    if (currentRightY !== null) prevRightY = currentRightY;
   };
 
   const startBossBattle = async (video: HTMLVideoElement) => {

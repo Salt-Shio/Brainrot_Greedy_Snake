@@ -1,5 +1,3 @@
-import type { Results } from '@mediapipe/hands';
-
 // 左右手標識
 export type HandSide = 'Left' | 'Right';
 
@@ -8,58 +6,56 @@ export interface MovementResult {
   scored: boolean;
   hand: HandSide;
 }
-
 /**
- * 提取手部的平均垂直座標 (Y軸中心點)
- * 取所有 21 個 Landmark 的平均值，比單純取手腕更穩定，
- * 即使手心朝上、側放也能精準追蹤手部重心。
+ * 提取手部的參考點 (中指指根 Landmark 9)
+ * 這是手掌中最穩定的點，即使手心朝上或高速晃動也不容易丟失。
  */
-export function getHandCenterY(results: Results, side: HandSide): number | null {
+export function getHandRefY(results: any, side: HandSide): number | null {
   if (!results.multiHandLandmarks || !results.multiHandedness) return null;
 
   for (let i = 0; i < results.multiHandedness.length; i++) {
     if (results.multiHandedness[i].label === side) {
-      const landmarks = results.multiHandLandmarks[i];
-      // 計算所有點的平均 Y 值
-      const sumY = landmarks.reduce((acc, curr) => acc + curr.y, 0);
-      return sumY / landmarks.length;
+      // Landmark 9 是中指指根 (Middle Finger MCP)
+      return results.multiHandLandmarks[i][9].y;
     }
   }
   return null;
 }
 
 /**
- * 核心判定：檢測雙手是否交替上下擺動
+ * 核心判定：檢測雙手是否交替向上擺動
+ * 採用「動態最低點參考」演算法，專為高速震動設計。
+ * @param currentHands 目前這幀資料
+ * @param lowestLeftY 自上次左手得分後的最低點 (Y值最大)
+ * @param lowestRightY 自上次右手得分後的最低點 (Y值最大)
+ * @param lastScoredHand 上次得分的手
+ * @param threshold 觸發攻擊的向上位移閾值 (建議設小一點以應對高速動作)
  */
 export function detectAlternatingMovement(
-  currentHands: Results,
-  prevLeftY: number | null,
-  prevRightY: number | null,
+  currentHands: any,
+  lowestLeftY: number | null,
+  lowestRightY: number | null,
   lastScoredHand: HandSide | null,
-  threshold: number = 0.12 
+  threshold: number = 0.06 // 降低閾值，只要向上移動 6% 畫面高度就計分
 ): MovementResult | null {
 
-  const currentLeftY = getHandCenterY(currentHands, 'Left');
-  const currentRightY = getHandCenterY(currentHands, 'Right');
+  const currentLeftY = getHandRefY(currentHands, 'Left');
+  const currentRightY = getHandRefY(currentHands, 'Right');
 
-  if (currentLeftY === null || currentRightY === null) return null;
-
-  // 如果沒有歷史資料，就先儲存目前狀態，不計分
-  if (prevLeftY === null || prevRightY === null) return null;
-
-  // 計算垂直位移量 (向上移動，Y值會變小，所以差值為負)
-  const leftDelta = prevLeftY - currentLeftY; 
-  const rightDelta = prevRightY - currentRightY;
-
-  // 檢查左手是否用力往上揮 (超過閾值)，且上次得分的不是左手
-  if (leftDelta > threshold && lastScoredHand !== 'Left') {
-    return { scored: true, hand: 'Left' };
+  if (currentLeftY !== null && lowestLeftY !== null) {
+    const leftUpwardDelta = lowestLeftY - currentLeftY; // Y 越小越上面
+    if (leftUpwardDelta > threshold && lastScoredHand !== 'Left') {
+      return { scored: true, hand: 'Left' };
+    }
   }
 
-  // 檢查右手是否用力往上揮 (超過閾值)，且上次得分的不是右手
-  if (rightDelta > threshold && lastScoredHand !== 'Right') {
-    return { scored: true, hand: 'Right' };
+  if (currentRightY !== null && lowestRightY !== null) {
+    const rightUpwardDelta = lowestRightY - currentRightY;
+    if (rightUpwardDelta > threshold && lastScoredHand !== 'Right') {
+      return { scored: true, hand: 'Right' };
+    }
   }
 
   return null;
 }
+
