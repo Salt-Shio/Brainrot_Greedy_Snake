@@ -78,13 +78,19 @@ const {
         </div>
 
         <!-- Boss Battle Overlay -->
-        <BossBattleOverlay 
+        <div 
           v-if="store.status.value === 'BOSS_BATTLE'"
-          :count="bossHitCount"
-          :target-count="bossTargetCount"
-          :is-camera-ready="isBossCameraReady"
-          @video-ready="startBossBattle"
-        />
+          class="relative rounded-3xl overflow-hidden"
+          style="width: min(90vw, 850px); height: min(90vw, 850px);"
+        >
+          <BossBattleOverlay 
+            :count="bossHitCount"
+            :target-count="bossTargetCount"
+            :score="store.score.value"
+            :is-camera-ready="isBossCameraReady"
+            @video-ready="startBossBattle"
+          />
+        </div>
 
         <!-- Paused Overlay -->
         <PausedOverlay 

@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue';
 const props = defineProps<{
   count: number;
   targetCount: number;
+  score: number;
   isCameraReady: boolean;
 }>();
 
@@ -34,15 +35,22 @@ onMounted(() => {
       playsinline
     ></video>
 
-    <!-- 頂部：狀態提示 -->
-    <div class="absolute top-8 text-center z-10">
+    <!-- 頂部：狀態提示與分數 -->
+    <div class="absolute top-8 left-8 z-10 text-left">
+      <div class="flex flex-col">
+        <span class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">Current Score</span>
+        <span class="text-2xl font-black text-white font-mono leading-none">{{ score }}</span>
+      </div>
+    </div>
+
+    <div class="absolute top-8 text-center z-10 w-full pointer-events-none">
       <h2 class="text-4xl font-black text-rose-500 uppercase tracking-widest animate-bounce">
         BOSS ENCOUNTER
       </h2>
-      <p v-if="!isCameraReady" class="text-yellow-400 font-mono mt-2 animate-pulse">
+      <p v-if="!isCameraReady" class="text-yellow-400 font-mono mt-2 animate-pulse text-xs">
         Initializing Vision System...
       </p>
-      <p v-else class="text-green-400 font-mono mt-2 font-bold tracking-widest">
+      <p v-else class="text-green-400 font-mono mt-2 font-bold tracking-widest text-xs">
         WAVE YOUR HANDS ALTERNATELY!
       </p>
     </div>
