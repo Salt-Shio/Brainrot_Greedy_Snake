@@ -11,6 +11,7 @@ const direction = ref<Direction>('UP');
 const nextDirection = ref<Direction>('UP');
 const status = ref<GameState>('IDLE');
 const score = ref(0);
+const eatenCount = ref(0);
 const controlMode = ref<InputMode>(CONFIG.DEFAULT_CONTROL_MODE);
 
 // --- Getters ---
@@ -41,6 +42,7 @@ const initGame = () => {
   nextDirection.value = 'UP';
   status.value = 'IDLE';
   score.value = 0;
+  eatenCount.value = 0;
 };
 
 /**
@@ -84,6 +86,7 @@ const moveStep = (): MemeFood | null => {
   if (foodIndex !== -1) {
     // 吃到食物：長度增加 (不 pop 尾巴)，分數增加，更換該食物位置
     score.value += 10;
+    eatenCount.value += 1;
     eatenMeme = { ...foods.value[foodIndex].meme };
     
     // 生成新的食物座標與迷因替換掉被吃掉的
@@ -128,6 +131,10 @@ const toggleControlMode = () => {
   controlMode.value = modes[(currentIndex + 1) % modes.length];
 };
 
+const resetEatenCount = () => {
+  eatenCount.value = 0;
+};
+
 export function useSnakeStore() {
   return {
     // State
@@ -136,6 +143,7 @@ export function useSnakeStore() {
     direction,
     status,
     score,
+    eatenCount,
     controlMode,
     // Getters
     isGameOver,
@@ -147,5 +155,6 @@ export function useSnakeStore() {
     startGame,
     pauseGame,
     toggleControlMode,
+    resetEatenCount,
   };
 }

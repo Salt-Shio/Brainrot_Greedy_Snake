@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GameState } from '../core/types';
+import type { GameState } from '@/core/types';
 
 interface Props {
   score: number;

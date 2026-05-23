@@ -1,4 +1,4 @@
-import type { MemeFood } from '../types';
+import type { MemeFood } from '@/core/types';
 import { TOTAL_MEME_TYPES } from './game';
 
 /**

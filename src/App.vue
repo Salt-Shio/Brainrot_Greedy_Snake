@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { useSnakeStore } from './composables/useSnakeStore';
-import { useGameSession } from './composables/useGameSession';
+import { useSnakeStore } from '@/composables/useSnakeStore';
+import { useGameSession } from '@/composables/useGameSession';
 
 // Components
-import GameGrid from './components/GameGrid.vue';
-import ScoreBoard from './components/ScoreBoard.vue';
-import NavigationSidebar from './components/NavigationSidebar.vue';
-import IdleOverlay from './components/overlays/IdleOverlay.vue';
-import GameOverOverlay from './components/overlays/GameOverOverlay.vue';
-import PausedOverlay from './components/overlays/PausedOverlay.vue';
-import MemeFlashOverlay from './components/overlays/MemeFlashOverlay.vue';
+import GameGrid from '@/components/GameGrid.vue';
+import ScoreBoard from '@/components/ScoreBoard.vue';
+import NavigationSidebar from '@/components/NavigationSidebar.vue';
+import IdleOverlay from '@/components/overlays/IdleOverlay.vue';
+import GameOverOverlay from '@/components/overlays/GameOverOverlay.vue';
+import PausedOverlay from '@/components/overlays/PausedOverlay.vue';
+import MemeFlashOverlay from '@/components/overlays/MemeFlashOverlay.vue';
+import BossBattleOverlay from '@/components/overlays/BossBattleOverlay.vue';
 
 const store = useSnakeStore();
-const { challengeMorse, lastEatenMeme, buffer, uiDisplay, handlePauseToggle, handleReset } = useGameSession();
+const { 
+  challengeMorse, 
+  lastEatenMeme, 
+  buffer, 
+  uiDisplay, 
+  handlePauseToggle, 
+  handleReset,
+  bossHitCount,
+  bossTargetCount,
+  isBossCameraReady,
+  startBossBattle
+} = useGameSession();
 </script>
 
 <template>
@@ -61,6 +73,15 @@ const { challengeMorse, lastEatenMeme, buffer, uiDisplay, handlePauseToggle, han
             @reset="handleReset"
           />
         </div>
+
+        <!-- Boss Battle Overlay -->
+        <BossBattleOverlay 
+          v-if="store.status.value === 'BOSS_BATTLE'"
+          :count="bossHitCount"
+          :target-count="bossTargetCount"
+          :is-camera-ready="isBossCameraReady"
+          @video-ready="startBossBattle"
+        />
 
         <!-- Paused Overlay -->
         <PausedOverlay 

@@ -1,8 +1,9 @@
 import { ref } from 'vue';
-import { useSnakeStore } from './useSnakeStore';
-import { useGameLoop } from './useGameLoop';
-import { useInputController } from './useInputController';
-import { useAudioController } from './useAudioController';
+import { useSnakeStore } from '@/composables/useSnakeStore';
+import { useGameLoop } from '@/composables/useGameLoop';
+import { useInputController } from '@/composables/useInputController';
+import { useAudioController } from '@/composables/useAudioController';
+import { useBossSession } from '@/composables/useBossSession';
 import type { SystemAction } from '@/core/input/types';
 import type { MemeFood } from '@/core/types';
 import * as CONFIG from '@/core/config';
@@ -16,10 +17,27 @@ import * as CONFIG from '@/core/config';
  * - 暫停 / 繼續
  * - GameLoop 的啟停協調
  * - 輸入控制器的橋接
+ * - Boss 戰鬥的啟動與結束協調
  */
 export function useGameSession() {
   const store = useSnakeStore();
   const { playEffect, playBGM, pauseBGM, stopBGM } = useAudioController();
+
+  // --- Boss 戰鬥協調 ---
+  const handleBossDefeat = () => {
+    store.status.value = 'PLAYING';
+    store.resetEatenCount();
+    playBGM();
+    loop.start();
+  };
+
+  const { 
+    isActive: isBossActive, 
+    count: bossHitCount, 
+    targetCount: bossTargetCount, 
+    isCameraReady: isBossCameraReady,
+    startBossBattle 
+  } = useBossSession(handleBossDefeat);
 
   // 用於觸發 UI 閃爍特效的響應式狀態
   const lastEatenMeme = ref<MemeFood | null>(null);
@@ -32,6 +50,11 @@ export function useGameSession() {
     if (eatenMeme) {
       playEffect(eatenMeme.soundUrl);
       lastEatenMeme.value = { ...eatenMeme };
+
+      // 檢查是否達到觸發 Boss 的閾值 (設定為 10)
+      if (store.eatenCount.value >= 10) {
+        triggerBossBattle();
+      }
     }
 
     // 檢查是否遊戲結束，若是則暫停 BGM
@@ -40,6 +63,12 @@ export function useGameSession() {
       loop.stop();
     }
   });
+
+  const triggerBossBattle = () => {
+    store.status.value = 'BOSS_BATTLE';
+    pauseBGM();
+    loop.stop();
+  };
 
   // --- 摩斯密碼挑戰 ---
   const challengeMorse = ref('');
@@ -140,6 +169,12 @@ export function useGameSession() {
     // 挑戰相關
     challengeMorse,
     lastEatenMeme,
+    // Boss 相關
+    isBossActive,
+    bossHitCount,
+    bossTargetCount,
+    isBossCameraReady,
+    startBossBattle,
     // 輸入控制器 (供 UI 使用)
     buffer,
     uiDisplay,

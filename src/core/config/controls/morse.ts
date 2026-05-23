@@ -1,4 +1,4 @@
-import type { Direction } from '../../types';
+import type { Direction } from '@/core/types';
 
 /**
  * 摩斯密碼引擎配置 (包含單鍵/雙鍵所有邏輯)

@@ -1,5 +1,5 @@
-import type { MapMode, VectorMap } from '../types';
-import type { InputMode } from '../input/types';
+import type { MapMode, VectorMap } from '@/core/types';
+import type { InputMode } from '@/core/input/types';
 
 /**
  * 遊戲網格大小 (20x20)

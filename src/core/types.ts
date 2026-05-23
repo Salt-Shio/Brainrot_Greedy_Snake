@@ -26,7 +26,7 @@ export interface FoodInstance {
 /**
  * 遊戲目前的狀態
  */
-export type GameState = 'IDLE' | 'PLAYING' | 'GAMEOVER' | 'PAUSED';
+export type GameState = 'IDLE' | 'PLAYING' | 'GAMEOVER' | 'PAUSED' | 'BOSS_BATTLE';
 
 /**
  * 地圖邊界模式
