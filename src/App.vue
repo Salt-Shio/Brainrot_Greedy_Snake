@@ -46,10 +46,11 @@ const {
     <!-- 主遊戲區域 (z-10 確保在影片之上) -->
     <div class="flex items-start gap-12 relative z-10">
       <div class="flex flex-col gap-8 w-48">
-        <!-- 分數顯示 -->
-        <ScoreBoard :score="store.score.value" :status="store.status.value" />
+        <!-- Score moved here -->
+        <ScoreBoard :score="store.score.value" :high-score="store.highScore.value" :status="store.status.value" />
 
         <NavigationSidebar 
+
           v-if="store.status.value === 'PLAYING'"
           :control-mode="store.controlMode.value"
           :ui-display="uiDisplay"

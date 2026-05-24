@@ -11,6 +11,7 @@ const direction = ref<Direction>('UP');
 const nextDirection = ref<Direction>('UP');
 const status = ref<GameState>('IDLE');
 const score = ref(0);
+const highScore = ref(Number(localStorage.getItem('snake_high_score')) || 0);
 const eatenCount = ref(0);
 const controlMode = ref<InputMode>(CONFIG.DEFAULT_CONTROL_MODE);
 const bossBattleMode = ref<BossBattleMode>('GESTURE');
@@ -91,6 +92,14 @@ const moveStep = (): MemeFood | null => {
     eatenCount.value += 1;
   }
 
+  // 檢查並更新最高分數
+  if (status.value === 'GAMEOVER') {
+    if (score.value > highScore.value) {
+      highScore.value = score.value;
+      localStorage.setItem('snake_high_score', highScore.value.toString());
+    }
+  }
+
   return result.eatenMeme;
 };
 
@@ -162,6 +171,7 @@ export function useSnakeStore() {
     direction,
     status,
     score,
+    highScore,
     eatenCount,
     controlMode,
     bossBattleMode,

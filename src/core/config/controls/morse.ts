@@ -6,10 +6,10 @@ import type { Direction } from '@/core/types';
 export const MORSE_CONFIG = {
   // 1. 核心映射 (共用)
   MAP: {
-    '..-': 'UP',
-    '--.': 'DOWN',
-    '-.-': 'LEFT',
-    '.-.': 'RIGHT',
+    '..': 'UP',
+    '--': 'DOWN',
+    '-.': 'LEFT',
+    '.-': 'RIGHT',
   } as Record<string, Direction>,
 
   // 2. 挑戰設定

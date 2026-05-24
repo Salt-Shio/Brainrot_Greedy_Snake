@@ -1,5 +1,46 @@
-# Vue 3 + TypeScript + Vite
+# Brainrot Greedy Snake (腦腐貪食蛇)
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+> [!CAUTION]
+> 此貪食蛇版本有大量腦腐迷因
+> 慎入!
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Vercel 連結
+
+
+
+## 設計理念 & 與原版差異
+
+這個貪食蛇從 `控制方式` 與 `遊玩過程觸發的事件` 做了改變
+
+* 控制方式 （三種）
+    1. 純摩斯密碼控制: 透過空白建按下的的時間長度分出長短
+    2. 摩斯密碼簡單版: 因為純摩斯密碼實際上有點困難
+        * 短: `i/I`
+        * 長: `o/O`
+    3. 避免太難玩不下去還是有經典的 `w/a/s/d`
+
+* 突發事件 67 boss，兩種遊玩方式，都要不斷 `6 7` 整整 67 次
+    1. mediapipe 手勢辨識，要求使用者 `6 7`
+    2. 透過交替數字鍵 `6/7` 避免沒有攝像機無法遊玩
+    
+不再是單純的吃東西得分，而是開始有主動觸發的事件，整體十分腦腐，大家玩 1 秒相當於滑了 10 秒 IG，可以親自體驗 67 過程中的樂趣
+
+
+## 玩家要怎麼操作
+
+* 主畫面:
+    1. 控制方式: 
+        1. `純 morse code`
+            * `r` 重置 morse code
+            * `t` 送出操作
+        2. `雙鍵 morse code`
+            * `r` 重置 morse code
+            * `t` 送出操作
+        3. `經典 wasd(或是上下左右)`
+    2. 67 Boss 遭遇後的解決方式:
+        1. `Mediapipe 手勢辨識`
+        2. `數字鍵 6 7`
+
+* 遊戲過程
+    * 根據你選的操控方式
+    * 每吃 10 個食物 (100 分) 就得遭遇 67 boss 一次

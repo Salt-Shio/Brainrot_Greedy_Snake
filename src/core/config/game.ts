@@ -14,7 +14,7 @@ export const MAP_MODE: MapMode = 'MIRROR_WRAP';
 /**
  * 場上食物數量
  */
-export const FOOD_COUNT = 5;
+export const FOOD_COUNT = 8;
 
 /**
  * 迷因種類總數 (對應 public/assets/memes 裡的檔案數量)
