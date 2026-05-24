@@ -2,6 +2,7 @@
 import { useSnakeStore } from '@/composables/useSnakeStore';
 import { useGameSession } from '@/composables/useGameSession';
 import { MORSE_CONFIG } from '@/core/config/controls/morse';
+import { GLOBAL_BG_VIDEO_URL } from '@/core/config/game';
 
 // Components
 import GameGrid from '@/components/GameGrid.vue';
@@ -30,11 +31,22 @@ const {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen p-4 select-none bg-slate-950 text-slate-200 font-sans">
-    <!-- Main Game Area -->
-    <div class="flex items-start gap-12">
+  <div class="flex flex-col items-center justify-center min-h-screen p-4 select-none bg-slate-950 text-slate-200 font-sans overflow-hidden">
+    <!-- 全域背景影片 (除了 Boss 戰以外都顯示) -->
+    <video
+      v-if="store.status.value !== 'BOSS_BATTLE'"
+      :src="GLOBAL_BG_VIDEO_URL"
+      autoplay
+      loop
+      muted
+      playsinline
+      class="fixed inset-0 w-full h-full object-cover opacity-30 pointer-events-none z-0"
+    ></video>
+
+    <!-- 主遊戲區域 (z-10 確保在影片之上) -->
+    <div class="flex items-start gap-12 relative z-10">
       <div class="flex flex-col gap-8 w-48">
-        <!-- Score moved here -->
+        <!-- 分數顯示 -->
         <ScoreBoard :score="store.score.value" :status="store.status.value" />
 
         <NavigationSidebar 
@@ -46,7 +58,7 @@ const {
       </div>
 
       <div class="relative group">
-        <!-- Game World -->
+        <!-- 遊戲網格 -->
         <GameGrid 
           v-show="store.status.value === 'PLAYING' || store.status.value === 'PAUSED'"
           :snake="store.snake.value" 
@@ -54,10 +66,10 @@ const {
           :direction="store.direction.value"
         />
         
-        <!-- Meme Flash Effect -->
+        <!-- 迷因閃爍特效 -->
         <MemeFlashOverlay :meme="lastEatenMeme" />
         
-        <!-- Overlays (IDLE / GAMEOVER) -->
+        <!-- 覆蓋層 (IDLE / GAMEOVER) -->
         <div 
           v-if="store.status.value === 'IDLE' || store.status.value === 'GAMEOVER'"
           class="relative rounded-3xl overflow-hidden"
@@ -81,7 +93,7 @@ const {
           />
         </div>
 
-        <!-- Boss Battle Overlay -->
+        <!-- Boss 戰鬥覆蓋層 -->
         <div 
           v-if="store.status.value === 'BOSS_BATTLE'"
           class="relative rounded-3xl overflow-hidden"
@@ -97,13 +109,13 @@ const {
           />
         </div>
 
-        <!-- Paused Overlay -->
+        <!-- 暫停覆蓋層 -->
         <PausedOverlay 
           v-if="store.status.value === 'PAUSED'"
           @resume="handlePauseToggle"
         />
 
-        <!-- Live Morse Feedback (During Play) -->
+        <!-- 摩斯密碼即時回饋 -->
         <div 
           v-if="store.status.value === 'PLAYING' && store.controlMode.value !== 'CLASSIC'"
           class="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-2 items-center"

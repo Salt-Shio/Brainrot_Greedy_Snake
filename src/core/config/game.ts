@@ -19,7 +19,7 @@ export const FOOD_COUNT = 5;
 /**
  * 迷因種類總數 (對應 public/assets/memes 裡的檔案數量)
  */
-export const TOTAL_MEME_TYPES = 6;
+export const TOTAL_MEME_TYPES = 8;
 
 /**
  * 全域音效音量 (0.0 ~ 1.0)
@@ -39,7 +39,7 @@ export const BGM_URL = '/assets/sounds/bgm.m4a'; // 預設路徑，請確保檔�
 /**
  * 初始移動速度 (毫秒)
  */
-export const INITIAL_SPEED = 300;
+export const INITIAL_SPEED = 200;
 
 /**
  * 方向向量映射表
@@ -69,7 +69,7 @@ export const OPPOSITE_DIRECTION: Record<Direction, Direction> = {
 /**
  * 吃掉幾個食物後觸發 Boss 戰鬥
  */
-export const BOSS_TRIGGER_COUNT = 3;
+export const BOSS_TRIGGER_COUNT = 10;
 
 /**
  * Boss 戰鬥需要完成的揮手次數
@@ -85,3 +85,8 @@ export const SNAKE_HEAD_URL = '/assets/snake_head.png';
  * 蛇身圖片路徑
  */
 export const SNAKE_BODY_URL = '/assets/snake_body.png';
+
+/**
+ * 全域背景影片路徑 (除 Boss 戰外顯示)
+ */
+export const GLOBAL_BG_VIDEO_URL = '/assets/background.mp4';
