@@ -6,7 +6,7 @@
 
 ## Vercel 連結
 
-
+https://brainrot-greedy-snake.vercel.app/
 
 ## 設計理念 & 與原版差異
 
