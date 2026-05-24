@@ -75,3 +75,13 @@ export const BOSS_TRIGGER_COUNT = 3;
  * Boss 戰鬥需要完成的揮手次數
  */
 export const BOSS_TARGET_COUNT = 67;
+
+/**
+ * 蛇頭圖片路徑
+ */
+export const SNAKE_HEAD_URL = '/assets/snake_head.png';
+
+/**
+ * 蛇身圖片路徑
+ */
+export const SNAKE_BODY_URL = '/assets/snake_body.png';

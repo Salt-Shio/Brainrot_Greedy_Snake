@@ -1,13 +1,27 @@
 <script setup lang="ts">
-import type { Point, FoodInstance } from '@/core/types';
-import { GRID_SIZE } from '@/core/config/game';
+import type { Point, FoodInstance, Direction } from '@/core/types';
+import { GRID_SIZE, SNAKE_HEAD_URL, SNAKE_BODY_URL } from '@/core/config/game';
 
 interface Props {
   snake: Point[];
   foods: FoodInstance[];
+  direction: Direction;
 }
 
 const props = defineProps<Props>();
+
+/**
+ * 根據目前方向計算蛇頭旋轉角度
+ */
+const headRotation = (dir: Direction) => {
+  switch (dir) {
+    case 'UP': return 'rotate-0';
+    case 'DOWN': return 'rotate-180';
+    case 'LEFT': return '-rotate-90';
+    case 'RIGHT': return 'rotate-90';
+    default: return 'rotate-0';
+  }
+};
 
 /**
  * 檢查特定座標是否為蛇身的一部份
@@ -51,13 +65,18 @@ const getFoodAt = (x: number, y: number): FoodInstance | undefined => {
         <!-- 蛇頭 -->
         <div 
           v-if="isSnakeHead(x-1, y-1)" 
-          class="w-full h-full bg-green-400 rounded-sm shadow-[0_0_10px_rgba(74,222,128,0.5)] z-10 scale-110"
-        ></div>
+          class="w-full h-full z-10 scale-125 flex items-center justify-center transition-transform duration-150"
+          :class="headRotation(props.direction)"
+        >
+          <img :src="SNAKE_HEAD_URL" class="w-full h-full object-contain" alt="Snake Head" />
+        </div>
         <!-- 蛇身 -->
         <div 
           v-else-if="isSnake(x-1, y-1)" 
-          class="w-[85%] h-[85%] bg-green-600 rounded-sm"
-        ></div>
+          class="w-[85%] h-[85%] flex items-center justify-center"
+        >
+          <img :src="SNAKE_BODY_URL" class="w-full h-full object-contain" alt="Snake Body" />
+        </div>
         <!-- 食物 (迷因圖片) - 使用絕對定位防止撐開網格 -->
         <div 
           v-else-if="getFoodAt(x-1, y-1)" 

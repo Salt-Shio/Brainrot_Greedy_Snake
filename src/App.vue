@@ -51,6 +51,7 @@ const {
           v-show="store.status.value === 'PLAYING' || store.status.value === 'PAUSED'"
           :snake="store.snake.value" 
           :foods="store.foods.value" 
+          :direction="store.direction.value"
         />
         
         <!-- Meme Flash Effect -->
